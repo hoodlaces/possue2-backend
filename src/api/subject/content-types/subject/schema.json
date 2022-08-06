@@ -27,9 +27,15 @@
       "repeatable": true,
       "component": "shared.seo"
     },
-    "Slug": {
+    "slug": {
       "type": "uid",
       "targetField": "title"
+    },
+    "essays": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::essay.essay",
+      "mappedBy": "subjects"
     }
   }
 }

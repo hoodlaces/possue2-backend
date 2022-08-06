@@ -21,9 +21,39 @@
       "type": "richtext",
       "required": true
     },
-    "Slug": {
+    "slug": {
       "type": "uid",
       "targetField": "title"
+    },
+    "month": {
+      "type": "enumeration",
+      "enum": [
+        "February",
+        "July",
+        "October"
+      ]
+    },
+    "subjects": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::subject.subject",
+      "inversedBy": "essays"
+    },
+    "answer": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::answer.answer"
+    },
+    "year": {
+      "type": "string",
+      "required": true,
+      "maxLength": 4,
+      "minLength": 4
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.seo"
     }
   }
 }
