@@ -43,6 +43,34 @@
     "structuredData": {
       "type": "json"
     },
+    "educationalUse": {
+      "type": "enumeration",
+      "enum": [
+        "bar-exam-prep",
+        "law-school-study",
+        "legal-research",
+        "continuing-education",
+        "professional-development"
+      ]
+    },
+    "educationalLevel": {
+      "type": "enumeration", 
+      "enum": [
+        "law-student",
+        "bar-candidate",
+        "practicing-attorney",
+        "legal-professional",
+        "general-public"
+      ]
+    },
+    "practiceArea": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "jurisdiction": {
+      "type": "string",
+      "maxLength": 50
+    },
     "metaViewport": {
       "type": "string"
     },

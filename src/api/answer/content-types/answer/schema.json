@@ -35,6 +35,11 @@
       "required": true,
       "maxLength": 4,
       "minLength": 4
+    },
+    "seo": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.seo"
     }
   }
 }

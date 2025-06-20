@@ -1,3 +1,34 @@
-# To prevent search engines from seeing the site altogether, uncomment the next two lines:
-# User-Agent: *
-# Disallow: /
+# Production robots.txt for Legal Education/Bar Exam Prep Site
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://possue.com/sitemap.xml
+
+# Disallow admin and API endpoints from search engines
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_health
+Disallow: /uploads/
+
+# Allow specific API endpoints that should be indexed
+Allow: /api/subjects/seo
+Allow: /api/essays/seo 
+Allow: /api/answers/seo
+
+# Common crawl delays for different bots
+User-agent: Googlebot
+Crawl-delay: 1
+
+User-agent: Bingbot
+Crawl-delay: 2
+
+# Block aggressive crawlers
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
