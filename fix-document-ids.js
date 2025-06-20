@@ -14,42 +14,54 @@ async function fixDocumentIds() {
   
   try {
     await client.connect();
-    console.log('🔧 Fixing document IDs for Strapi v5 compatibility...');
+    console.log('🔧 Fixing document IDs for Strapi v5...');
     
-    const tables = ['subjects', 'essays', 'answers'];
+    // Fix subjects
+    const subjects = await client.query('SELECT id FROM subjects WHERE document_id IS NULL OR document_id = \'\'');
+    console.log(`📚 Updating ${subjects.rows.length} subjects...`);
     
-    for (const table of tables) {
-      console.log(`📋 Processing ${table}...`);
-      
-      // Get all records without document_id
-      const records = await client.query(`
-        SELECT id FROM ${table} WHERE document_id IS NULL OR document_id = ''
-      `);
-      
-      console.log(`Found ${records.rows.length} records to fix in ${table}`);
-      
-      // Update each record with a unique document_id
-      for (const record of records.rows) {
-        const documentId = uuidv4();
-        await client.query(`
-          UPDATE ${table} SET document_id = $1 WHERE id = $2
-        `, [documentId, record.id]);
-      }
-      
-      console.log(`✅ Fixed ${records.rows.length} records in ${table}`);
+    for (const subject of subjects.rows) {
+      const documentId = uuidv4();
+      await client.query(
+        'UPDATE subjects SET document_id = $1 WHERE id = $2',
+        [documentId, subject.id]
+      );
     }
     
-    // Verify the fix
-    console.log('\n📊 Verification:');
-    for (const table of tables) {
-      const count = await client.query(`SELECT COUNT(*) FROM ${table} WHERE document_id IS NOT NULL AND document_id != ''`);
-      console.log(`   - ${table}: ${count.rows[0].count} records with document_id`);
+    // Fix essays
+    const essays = await client.query('SELECT id FROM essays WHERE document_id IS NULL OR document_id = \'\'');
+    console.log(`📝 Updating ${essays.rows.length} essays...`);
+    
+    for (const essay of essays.rows) {
+      const documentId = uuidv4();
+      await client.query(
+        'UPDATE essays SET document_id = $1 WHERE id = $2',
+        [documentId, essay.id]
+      );
     }
     
-    console.log('\n🎉 Document IDs fixed! Content should now appear in Strapi v5 admin panel.');
+    // Fix answers
+    const answers = await client.query('SELECT id FROM answers WHERE document_id IS NULL OR document_id = \'\'');
+    console.log(`💡 Updating ${answers.rows.length} answers...`);
+    
+    for (const answer of answers.rows) {
+      const documentId = uuidv4();
+      await client.query(
+        'UPDATE answers SET document_id = $1 WHERE id = $2',
+        [documentId, answer.id]
+      );
+    }
+    
+    // Also ensure published_at is NULL for draft status in v5
+    await client.query('UPDATE subjects SET published_at = NULL WHERE published_at IS NOT NULL');
+    await client.query('UPDATE essays SET published_at = NULL WHERE published_at IS NOT NULL');
+    await client.query('UPDATE answers SET published_at = NULL WHERE published_at IS NOT NULL');
+    
+    console.log('✅ Document IDs fixed successfully\!');
+    console.log('📌 All content set to draft status (published_at = NULL)');
     
   } catch (error) {
-    console.error('❌ Error fixing document IDs:', error);
+    console.error('❌ Error fixing document IDs:', error.message);
   } finally {
     await client.end();
   }

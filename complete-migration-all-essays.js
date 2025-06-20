@@ -2,7 +2,6 @@ const axios = require('axios');
 const { Client } = require('pg');
 
 const LIVE_API = 'https://possue2-backend.onrender.com/api';
-const LIVE_ADMIN_API = 'https://possue2-backend.onrender.com/admin';
 const LIVE_TOKEN = '01e68a8657e83234d620f89e53a50213f6e74f49c8cc668fcf1371f9cd67281f0b713fd164e21f5d66fed9e33b9c0c700697e0a17c65ca8e71c860d7ccc50f2f301b29c1fe0d9162db4cd88ab8e3fbb3bb8fbd524afb2d72312787a146dd0458e7ce311bcb312592f6f763092f32fd3106412cd6d5d5ba58f33e9d67048d57bbe';
 
 const v5DbConfig = {
@@ -13,12 +12,34 @@ const v5DbConfig = {
   password: '1212'
 };
 
+async function fetchAllEssays() {
+  const allEssays = [];
+  let page = 1;
+  let hasMore = true;
+  
+  while (hasMore) {
+    console.log(`📝 Fetching essays page ${page}...`);
+    const response = await axios.get(`${LIVE_API}/essays?populate=*&pagination[page]=${page}&pagination[pageSize]=100`);
+    const { data, meta } = response.data;
+    
+    allEssays.push(...data);
+    
+    if (meta.pagination.page >= meta.pagination.pageCount) {
+      hasMore = false;
+    } else {
+      page++;
+    }
+  }
+  
+  return allEssays;
+}
+
 async function completeMigration() {
   const v5Client = new Client(v5DbConfig);
   
   try {
     await v5Client.connect();
-    console.log('🚀 Starting complete migration (API + Database)...');
+    console.log('🚀 Starting complete migration with ALL essays...');
     
     // Fetch all data from live API
     console.log('📚 Fetching subjects from live API...');
@@ -26,9 +47,8 @@ async function completeMigration() {
     const subjects = subjectsResponse.data.data;
     console.log(`Found ${subjects.length} subjects`);
     
-    console.log('📝 Fetching essays from live API...');
-    const essaysResponse = await axios.get(`${LIVE_API}/essays?populate=*&pagination[limit]=1000&pagination[pageSize]=1000`);
-    const essays = essaysResponse.data.data;
+    console.log('📝 Fetching ALL essays from live API...');
+    const essays = await fetchAllEssays();
     console.log(`Found ${essays.length} essays`);
     
     console.log('💡 Fetching answers from live API...');
@@ -69,13 +89,16 @@ async function completeMigration() {
     const essayMapping = {};
     for (const essay of essays) {
       const result = await v5Client.query(`
-        INSERT INTO essays (id, title, content, created_at, updated_at, published_at, created_by_id, updated_by_id, locale) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+        INSERT INTO essays (id, title, content, slug, month, year, created_at, updated_at, published_at, created_by_id, updated_by_id, locale) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) 
         RETURNING id
       `, [
         essay.id,
         essay.attributes.title,
         essay.attributes.content,
+        essay.attributes.slug,
+        essay.attributes.month,
+        essay.attributes.year,
         essay.attributes.createdAt,
         essay.attributes.updatedAt,
         essay.attributes.publishedAt,
@@ -87,16 +110,19 @@ async function completeMigration() {
       console.log(`✅ Inserted essay: ${essay.attributes.title}`);
     }
     
-    // Insert answers  
+    // Insert answers
     console.log('💡 Inserting answers...');
     for (const answer of answers) {
       await v5Client.query(`
-        INSERT INTO answers (id, title, content, created_at, updated_at, published_at, created_by_id, updated_by_id, locale) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO answers (id, title, content, month, slug, year, created_at, updated_at, published_at, created_by_id, updated_by_id, locale) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       `, [
         answer.id,
         answer.attributes.title,
         answer.attributes.content,
+        answer.attributes.month,
+        answer.attributes.slug,
+        answer.attributes.year,
         answer.attributes.createdAt,
         answer.attributes.updatedAt,
         answer.attributes.publishedAt,
@@ -107,56 +133,46 @@ async function completeMigration() {
       console.log(`✅ Inserted answer: ${answer.attributes.title}`);
     }
     
-    // Insert relationships
+    // Create relationships
     console.log('🔗 Creating relationships...');
+    let relationshipCount = 0;
     
     // Essay-Subject relationships
     for (const essay of essays) {
-      if (essay.attributes.subjects?.data) {
+      if (essay.attributes.subjects?.data?.length > 0) {
         for (const subject of essay.attributes.subjects.data) {
-          if (subjectMapping[subject.id]) {
-            await v5Client.query(`
-              INSERT INTO essays_subjects_lnk (essay_id, subject_id, essay_ord, subject_ord) 
-              VALUES ($1, $2, $3, $4)
-            `, [essayMapping[essay.id], subjectMapping[subject.id], 1, 1]);
-          }
+          await v5Client.query(
+            'INSERT INTO essays_subjects_lnk (essay_id, subject_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [essayMapping[essay.id], subjectMapping[subject.id]]
+          );
+          relationshipCount++;
         }
       }
     }
     
-    // Essay-Answer relationships  
-    for (const answer of answers) {
-      if (answer.attributes.essays?.data) {
-        for (const essay of answer.attributes.essays.data) {
-          if (essayMapping[essay.id]) {
-            await v5Client.query(`
-              INSERT INTO essays_answer_lnk (essay_id, answer_id, essay_ord, answer_ord) 
-              VALUES ($1, $2, $3, $4)
-            `, [essayMapping[essay.id], answer.id, 1, 1]);
-          }
-        }
+    // Essay-Answer relationships
+    for (const essay of essays) {
+      if (essay.attributes.answer?.data?.id) {
+        await v5Client.query(
+          'INSERT INTO essays_answer_lnk (essay_id, answer_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [essayMapping[essay.id], essay.attributes.answer.data.id]
+        );
+        relationshipCount++;
       }
     }
     
     // Update sequences
     console.log('🔢 Updating sequences...');
-    await v5Client.query(`SELECT setval('subjects_id_seq', (SELECT MAX(id) FROM subjects))`);
-    await v5Client.query(`SELECT setval('essays_id_seq', (SELECT MAX(id) FROM essays))`);
-    await v5Client.query(`SELECT setval('answers_id_seq', (SELECT MAX(id) FROM answers))`);
+    await v5Client.query("SELECT setval('subjects_id_seq', (SELECT MAX(id) FROM subjects))");
+    await v5Client.query("SELECT setval('essays_id_seq', (SELECT MAX(id) FROM essays))");
+    await v5Client.query("SELECT setval('answers_id_seq', (SELECT MAX(id) FROM answers))");
     
     console.log('🎉 Migration completed successfully!');
-    
-    // Summary
-    const subjectCount = await v5Client.query('SELECT COUNT(*) FROM subjects');
-    const essayCount = await v5Client.query('SELECT COUNT(*) FROM essays');
-    const answerCount = await v5Client.query('SELECT COUNT(*) FROM answers');
-    const relationCount = await v5Client.query('SELECT COUNT(*) FROM essays_subjects_lnk');
-    
-    console.log('📊 Final Summary:');
-    console.log(`   - Subjects: ${subjectCount.rows[0].count}`);
-    console.log(`   - Essays: ${essayCount.rows[0].count}`);
-    console.log(`   - Answers: ${answerCount.rows[0].count}`);
-    console.log(`   - Relationships: ${relationCount.rows[0].count}`);
+    console.log(`📊 Final Summary:
+   - Subjects: ${subjects.length}
+   - Essays: ${essays.length}
+   - Answers: ${answers.length}
+   - Relationships: ${relationshipCount}`);
     
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
