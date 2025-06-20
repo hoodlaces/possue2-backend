@@ -1,0 +1,142 @@
+[
+  {
+    "id": 15,
+    "document_id": "subject-15",
+    "title": "Community Property",
+    "description": "Study California Bar Exam Essay Subject Community Property",
+    "created_at": "2022-08-05T17:20:57.422Z",
+    "updated_at": "2022-08-07T01:56:03.081Z",
+    "published_at": "2022-08-05T17:21:06.513Z",
+    "locale": "en"
+  },
+  {
+    "id": 16,
+    "document_id": "subject-16",
+    "title": "Constitutional Law",
+    "description": "Study California Bar Exam Essay Subject Constitutional Law",
+    "created_at": "2022-08-05T17:21:32.565Z",
+    "updated_at": "2022-08-07T01:56:11.294Z",
+    "published_at": "2022-08-05T17:23:57.697Z",
+    "locale": "en"
+  },
+  {
+    "id": 18,
+    "document_id": "subject-18",
+    "title": "Criminal Law",
+    "description": "Study California Bar Exam Essay Subject Criminal Law",
+    "created_at": "2022-08-05T17:22:32.798Z",
+    "updated_at": "2022-08-07T01:56:23.100Z",
+    "published_at": "2022-08-05T17:24:50.817Z",
+    "locale": "en"
+  },
+  {
+    "id": 21,
+    "document_id": "subject-21",
+    "title": "Evidence",
+    "description": "Study California Bar Exam Essay Subject Evidence",
+    "created_at": "2022-08-05T17:23:35.301Z",
+    "updated_at": "2022-08-07T01:56:33.096Z",
+    "published_at": "2022-08-05T17:24:58.728Z",
+    "locale": "en"
+  },
+  {
+    "id": 22,
+    "document_id": "subject-22",
+    "title": "Professional Responsibility",
+    "description": "Study California Bar Exam Essay Subject Professional Responsibility",
+    "created_at": "2022-08-05T17:25:48.515Z",
+    "updated_at": "2022-08-07T01:56:40.787Z",
+    "published_at": "2022-08-05T17:25:54.681Z",
+    "locale": "en"
+  },
+  {
+    "id": 20,
+    "document_id": "subject-20",
+    "title": "Principal and Agency",
+    "description": "Study California Bar Exam Essay Subject Principal and Agency",
+    "created_at": "2022-08-05T17:23:24.481Z",
+    "updated_at": "2022-08-07T01:56:50.090Z",
+    "published_at": "2022-08-05T17:25:02.303Z",
+    "locale": "en"
+  },
+  {
+    "id": 26,
+    "document_id": "subject-26",
+    "title": "Wills and Trusts",
+    "description": "Study California Bar Exam Essay Subject Wills and Trusts",
+    "created_at": "2022-08-05T17:26:46.656Z",
+    "updated_at": "2022-08-07T01:57:07.181Z",
+    "published_at": "2022-08-05T17:26:47.766Z",
+    "locale": "en"
+  },
+  {
+    "id": 25,
+    "document_id": "subject-25",
+    "title": "Torts",
+    "description": "Study California Bar Exam Essay Subject Torts",
+    "created_at": "2022-08-05T17:26:32.791Z",
+    "updated_at": "2022-08-07T01:57:16.716Z",
+    "published_at": "2022-08-05T17:26:33.636Z",
+    "locale": "en"
+  },
+  {
+    "id": 24,
+    "document_id": "subject-24",
+    "title": "Remedies",
+    "description": "Study California Bar Exam Essay Subject Remedies",
+    "created_at": "2022-08-05T17:26:21.477Z",
+    "updated_at": "2022-08-07T01:57:25.386Z",
+    "published_at": "2022-08-05T17:26:22.245Z",
+    "locale": "en"
+  },
+  {
+    "id": 23,
+    "document_id": "subject-23",
+    "title": "Real Property",
+    "description": "Study California Bar Exam Essay Subject Real Property",
+    "created_at": "2022-08-05T17:26:07.912Z",
+    "updated_at": "2022-08-07T01:57:32.784Z",
+    "published_at": "2022-08-05T17:26:09.727Z",
+    "locale": "en"
+  },
+  {
+    "id": 19,
+    "document_id": "subject-19",
+    "title": "Criminal Procedure",
+    "description": "Study California Bar Exam Essay Subject Criminal Procedure",
+    "created_at": "2022-08-05T17:22:58.728Z",
+    "updated_at": "2022-08-07T01:57:44.491Z",
+    "published_at": "2022-08-05T17:24:54.433Z",
+    "locale": "en"
+  },
+  {
+    "id": 17,
+    "document_id": "subject-17",
+    "title": "Contracts",
+    "description": "Study California Bar Exam Essay Subject of Contracts",
+    "created_at": "2022-08-05T17:22:09.543Z",
+    "updated_at": "2022-08-08T00:36:24.886Z",
+    "published_at": "2022-08-05T17:24:47.034Z",
+    "locale": "en"
+  },
+  {
+    "id": 1,
+    "document_id": "subject-1",
+    "title": "Business Associations",
+    "description": "Study California Bar Exam Essay Subject Business Associations",
+    "created_at": "2022-08-05T03:00:53.857Z",
+    "updated_at": "2022-09-01T00:37:57.193Z",
+    "published_at": "2022-08-05T16:54:35.934Z",
+    "locale": "en"
+  },
+  {
+    "id": 2,
+    "document_id": "subject-2",
+    "title": "Civil Procedure",
+    "description": "Study California Bar Exam Essay Subject Civil Procedure",
+    "created_at": "2022-08-05T16:53:10.257Z",
+    "updated_at": "2022-09-01T00:39:41.101Z",
+    "published_at": "2022-08-05T17:19:22.673Z",
+    "locale": "en"
+  }
+]
