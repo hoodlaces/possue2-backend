@@ -63,9 +63,9 @@ module.exports = createCoreController('api::subject.subject', ({ strapi }) => ({
 
     // Generate structured data using SEO helper
     const seoHelper = strapi.service('api::subject.seo-helper');
-    const subjectStructuredData = seoHelper.generateSubjectStructuredData(subject);
-    const breadcrumbStructuredData = seoHelper.generateBreadcrumbStructuredData(breadcrumbs);
-    const faqStructuredData = seoHelper.generateSubjectFAQStructuredData(subject, subject.essays);
+    const subjectStructuredData = seoHelper.generateSubjectSchema(subject, subject.essays);
+    const breadcrumbStructuredData = seoHelper.generateBreadcrumbSchema(breadcrumbs);
+    const faqStructuredData = seoHelper.generateFAQSchema(subject, subject.essays);
 
     return {
       ...subject,

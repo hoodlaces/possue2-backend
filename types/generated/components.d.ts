@@ -31,6 +31,28 @@ export interface SharedSeo extends Struct.ComponentSchema {
   };
   attributes: {
     canonicalURL: Schema.Attribute.String;
+    educationalLevel: Schema.Attribute.Enumeration<
+      [
+        'law-student',
+        'bar-candidate',
+        'practicing-attorney',
+        'legal-professional',
+        'general-public',
+      ]
+    >;
+    educationalUse: Schema.Attribute.Enumeration<
+      [
+        'bar-exam-prep',
+        'law-school-study',
+        'legal-research',
+        'continuing-education',
+        'professional-development',
+      ]
+    >;
+    jurisdiction: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 50;
+      }>;
     keywords: Schema.Attribute.Text;
     metaDescription: Schema.Attribute.String &
       Schema.Attribute.Required &
@@ -48,6 +70,10 @@ export interface SharedSeo extends Struct.ComponentSchema {
         maxLength: 60;
       }>;
     metaViewport: Schema.Attribute.String;
+    practiceArea: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
     structuredData: Schema.Attribute.JSON;
   };
 }

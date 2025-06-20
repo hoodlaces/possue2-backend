@@ -72,9 +72,19 @@ module.exports = createCoreController('api::essay.essay', ({ strapi }) => ({
 
     breadcrumbs.push({ name: essay.title, url: `/essays/${essay.slug}` });
 
+    // Generate structured data using SEO helper
+    const seoHelper = strapi.service('api::subject.seo-helper');
+    const subject = essay.subjects && essay.subjects.length > 0 ? essay.subjects[0] : null;
+    const essayStructuredData = seoHelper.generateEssaySchema(essay, subject);
+    const breadcrumbStructuredData = seoHelper.generateBreadcrumbSchema(breadcrumbs);
+
     return {
       ...essay,
       breadcrumbs,
+      structuredData: {
+        essay: essayStructuredData,
+        breadcrumbs: breadcrumbStructuredData,
+      },
     };
   },
 

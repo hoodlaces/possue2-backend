@@ -50,7 +50,11 @@
       "Bash(brew install:*)",
       "Bash(dropdb:*)",
       "Bash(createdb:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "WebFetch(domain:possue2-backend.onrender.com)",
+      "Bash(npm search:*)",
+      "Bash(sudo chown:*)",
+      "Bash(yarn add:*)"
     ],
     "deny": []
   }

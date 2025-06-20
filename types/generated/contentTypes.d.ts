@@ -397,6 +397,7 @@ export interface ApiAnswerAnswer extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     month: Schema.Attribute.Enumeration<['February', 'October', 'July']>;
     publishedAt: Schema.Attribute.DateTime;
+    seo: Schema.Attribute.Component<'shared.seo', true>;
     slug: Schema.Attribute.UID<'title'>;
     title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
@@ -731,6 +732,128 @@ export interface PluginReviewWorkflowsWorkflowStage
   };
 }
 
+export interface PluginStrapi5SitemapPluginStrapi5SitemapPluginContentType
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'strapi_5_sitemap_plugin_content_types';
+  info: {
+    displayName: 'strapi-5-sitemap-plugin-content-type';
+    pluralName: 'strapi-5-sitemap-plugin-content-types';
+    singularName: 'strapi-5-sitemap-plugin-content-type';
+  };
+  options: {
+    comment: '';
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    frequency: Schema.Attribute.String;
+    langcode: Schema.Attribute.String;
+    lastModified: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::strapi-5-sitemap-plugin.strapi-5-sitemap-plugin-content-type'
+    > &
+      Schema.Attribute.Private;
+    pattern: Schema.Attribute.String;
+    priority: Schema.Attribute.Float;
+    publishedAt: Schema.Attribute.DateTime;
+    thumbnail: Schema.Attribute.String;
+    type: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface PluginStrapi5SitemapPluginStrapi5SitemapPluginContentTypeSingleUrl
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'strapi_5_sitemap_plugin_content_type_single_urls';
+  info: {
+    displayName: 'strapi-5-sitemap-plugin-content-type-single-url';
+    pluralName: 'strapi-5-sitemap-plugin-content-type-single-urls';
+    singularName: 'strapi-5-sitemap-plugin-content-type-single-url';
+  };
+  options: {
+    comment: '';
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    frequency: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::strapi-5-sitemap-plugin.strapi-5-sitemap-plugin-content-type-single-url'
+    > &
+      Schema.Attribute.Private;
+    priority: Schema.Attribute.Float;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface PluginStrapi5SitemapPluginStrapi5SitemapPluginOption
+  extends Struct.SingleTypeSchema {
+  collectionName: 'strapi_5_sitemap_plugin_options';
+  info: {
+    displayName: 'strapi-5-sitemap-plugin-options';
+    pluralName: 'strapi-5-sitemap-plugin-options';
+    singularName: 'strapi-5-sitemap-plugin-option';
+  };
+  options: {
+    comment: '';
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    baseUrl: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::strapi-5-sitemap-plugin.strapi-5-sitemap-plugin-option'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface PluginUploadFile extends Struct.CollectionTypeSchema {
   collectionName: 'files';
   info: {
@@ -1011,6 +1134,9 @@ declare module '@strapi/strapi' {
       'plugin::i18n.locale': PluginI18NLocale;
       'plugin::review-workflows.workflow': PluginReviewWorkflowsWorkflow;
       'plugin::review-workflows.workflow-stage': PluginReviewWorkflowsWorkflowStage;
+      'plugin::strapi-5-sitemap-plugin.strapi-5-sitemap-plugin-content-type': PluginStrapi5SitemapPluginStrapi5SitemapPluginContentType;
+      'plugin::strapi-5-sitemap-plugin.strapi-5-sitemap-plugin-content-type-single-url': PluginStrapi5SitemapPluginStrapi5SitemapPluginContentTypeSingleUrl;
+      'plugin::strapi-5-sitemap-plugin.strapi-5-sitemap-plugin-option': PluginStrapi5SitemapPluginStrapi5SitemapPluginOption;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::users-permissions.permission': PluginUsersPermissionsPermission;

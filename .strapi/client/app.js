@@ -3,10 +3,12 @@
  * Any modifications made will be discarded.
  */
 import usersPermissions from "@strapi/plugin-users-permissions/strapi-admin";
+import strapi5SitemapPlugin from "strapi-5-sitemap-plugin/strapi-admin";
 import { renderAdmin } from "@strapi/strapi/admin";
 
 renderAdmin(document.getElementById("strapi"), {
   plugins: {
     "users-permissions": usersPermissions,
+    "strapi-5-sitemap-plugin": strapi5SitemapPlugin,
   },
 });

@@ -1,6 +1,6 @@
 module.exports = ({ env }) => {
-  // In production, use DATABASE_URL, otherwise use individual connection params
-  if (env('NODE_ENV') === 'production' && env('DATABASE_URL')) {
+  // Check if we're explicitly in production mode with DATABASE_URL
+  if (env('DATABASE_URL') && (env('NODE_ENV') === 'production' || process.env.NODE_ENV === 'production')) {
     return {
       connection: {
         client: 'postgres',
@@ -14,7 +14,7 @@ module.exports = ({ env }) => {
     };
   }
 
-  // Development configuration (local database)
+  // Default to development configuration (local database)
   return {
     connection: {
       client: 'postgres',

@@ -84,10 +84,20 @@ module.exports = createCoreController('api::answer.answer', ({ strapi }) => ({
 
     breadcrumbs.push({ name: answer.title, url: `/answers/${answer.slug}` });
 
+    // Generate structured data using SEO helper
+    const seoHelper = strapi.service('api::subject.seo-helper');
+    const relatedEssay = essay.length > 0 ? essay[0] : null;
+    const answerStructuredData = seoHelper.generateAnswerSchema(answer, relatedEssay);
+    const breadcrumbStructuredData = seoHelper.generateBreadcrumbSchema(breadcrumbs);
+
     return {
       ...answer,
       breadcrumbs,
-      relatedEssay: essay.length > 0 ? essay[0] : null,
+      relatedEssay,
+      structuredData: {
+        answer: answerStructuredData,
+        breadcrumbs: breadcrumbStructuredData,
+      },
     };
   },
 }));
