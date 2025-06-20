@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(node:*)",
+      "Bash(npm --version)",
+      "Bash(yarn --version)",
+      "Bash(yarn install)",
+      "Bash(npm install:*)",
+      "Bash(npm cache clean:*)",
+      "Bash(pg_isready:*)",
+      "Bash(npm run develop:*)",
+      "Bash(rm:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "WebFetch(domain:docs.strapi.io)",
+      "Bash(cp:*)",
+      "Bash(npx @strapi/upgrade codemods:*)",
+      "Bash(npx @strapi/upgrade@latest major:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": []
+  }
+}
