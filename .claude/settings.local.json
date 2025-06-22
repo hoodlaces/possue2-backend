@@ -54,7 +54,27 @@
       "WebFetch(domain:possue2-backend.onrender.com)",
       "Bash(npm search:*)",
       "Bash(sudo chown:*)",
-      "Bash(yarn add:*)"
+      "Bash(yarn add:*)",
+      "Bash(git rm:*)",
+      "Bash(npm run strapi build:*)",
+      "Bash(npm run strapi:*)",
+      "Bash(pg_dump:*)",
+      "Bash(kill:*)",
+      "Bash(npm run start:*)",
+      "Bash(git push:*)",
+      "Bash(NODE_ENV=production npm run build)",
+      "Bash(NODE_ENV=production node -e \"\nconst { parse } = require('pg-connection-string');\nconst { Client } = require('pg');\n\nconst config = parse(process.env.DATABASE_URL || 'postgres://possue:zY5Bx6s2D752UcM6oxIqnFIB6cD5JOqV@dpg-cbnfg29a6gds3kmf1qn0-a.oregon-postgres.render.com/possue2');\nconst client = new Client({\n  ...config,\n  ssl: { rejectUnauthorized: false }\n});\n\nasync function checkRoles() {\n  try {\n    await client.connect();\n    \n    // Check admin roles\n    const roles = await client.query('SELECT * FROM admin_roles');\n    console.log('Admin roles:', roles.rows);\n    \n    // Check admin_users_roles_lnk\n    const userRoles = await client.query('SELECT * FROM admin_users_roles_lnk');\n    console.log('User-role links:', userRoles.rows);\n    \n    // Check if tables exist\n    const tables = await client.query(`\n      SELECT table_name \n      FROM information_schema.tables \n      WHERE table_schema = 'public' \n      AND table_name LIKE 'admin_%'\n      ORDER BY table_name\n    `);\n    console.log('Admin tables:', tables.rows.map(r => r.table_name));\n    \n  } catch (error) {\n    console.error('❌ Error:', error.message);\n  } finally {\n    await client.end();\n  }\n}\n\ncheckRoles();\n\")",
+      "Bash(NODE_ENV=production node -e \"\nconst { parse } = require('pg-connection-string');\nconst { Client } = require('pg');\n\nconst config = parse(process.env.DATABASE_URL || 'postgres://possue:zY5Bx6s2D752UcM6oxIqnFIB6cD5JOqV@dpg-cbnfg29a6gds3kmf1qn0-a.oregon-postgres.render.com/possue2');\nconst client = new Client({\n  ...config,\n  ssl: { rejectUnauthorized: false }\n});\n\nasync function checkTables() {\n  try {\n    await client.connect();\n    \n    const tables = await client.query(\n      \\\"SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE 'admin_%' ORDER BY table_name\\\"\n    );\n    console.log('Admin tables:', tables.rows.map(r => r.table_name));\n    \n    // Test if we can access the admin system\n    const testQuery = await client.query('SELECT 1 as test');\n    console.log('Query test successful:', testQuery.rows[0]);\n    \n  } catch (error) {\n    console.error('❌ Error:', error.message);\n  } finally {\n    await client.end();\n  }\n}\n\ncheckTables();\n\")",
+      "Bash(NODE_ENV=production npm start)",
+      "Bash(NODE_ENV=production node -e \"\nconst { parse } = require('pg-connection-string');\nconst { Client } = require('pg');\n\nconst config = parse(process.env.DATABASE_URL || 'postgres://possue:zY5Bx6s2D752UcM6oxIqnFIB6cD5JOqV@dpg-cbnfg29a6gds3kmf1qn0-a.oregon-postgres.render.com/possue2');\nconst client = new Client({\n  ...config,\n  ssl: { rejectUnauthorized: false }\n});\n\nasync function checkSubjects() {\n  try {\n    await client.connect();\n    \n    // Check for duplicate document_ids in subjects table\n    const duplicates = await client.query(`\n      SELECT document_id, COUNT(*) as count \n      FROM subjects \n      GROUP BY document_id \n      HAVING COUNT(*) > 1\n    `);\n    console.log('Duplicate document_ids:', duplicates.rows);\n    \n    // Check migration status\n    const migrations = await client.query(`\n      SELECT name, batch \n      FROM strapi_migrations \n      WHERE name LIKE '%discard-drafts%'\n    `);\n    console.log('Discard drafts migration status:', migrations.rows);\n    \n    // Count total subjects\n    const total = await client.query('SELECT COUNT(*) as count FROM subjects');\n    console.log('Total subjects:', total.rows[0].count);\n    \n  } catch (error) {\n    console.error('❌ Error:', error.message);\n  } finally {\n    await client.end();\n  }\n}\n\ncheckSubjects();\n\")",
+      "Bash(NODE_ENV=production node fix-migration.js)",
+      "Bash(NODE_ENV=production node fix-subjects-migration.js)",
+      "Bash(NODE_ENV=production node create-missing-tables.js)",
+      "WebFetch(domain:localhost)",
+      "Bash(gzip:*)",
+      "Bash(chmod:*)",
+      "Bash(./backup-database.sh:*)",
+      "Bash(/Applications/Postgres.app/Contents/Versions/17/bin/pg_restore --list backups/strapi-marketplace-v5-custom-20250622-003133.backup)"
     ],
     "deny": []
   }
