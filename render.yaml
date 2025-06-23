@@ -11,7 +11,7 @@ services:
         value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: possue2-db
+          name: possue2-db-v5
           property: connectionString
       - key: APP_KEYS
         generateValue: true
@@ -25,7 +25,7 @@ services:
         generateValue: true
 
 databases:
-  - name: possue2-db
-    databaseName: possue2
-    user: possue2
+  - name: possue2-db-v5
+    databaseName: possue2_strapi5
+    user: possue2_v5
     plan: starter
