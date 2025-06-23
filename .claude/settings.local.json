@@ -76,7 +76,8 @@
       "Bash(./backup-database.sh:*)",
       "Bash(/Applications/Postgres.app/Contents/Versions/17/bin/pg_restore --list backups/strapi-marketplace-v5-custom-20250622-003133.backup)",
       "Bash(true)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(npm start)"
     ],
     "deny": []
   }
