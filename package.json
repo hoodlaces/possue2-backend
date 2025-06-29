@@ -14,7 +14,10 @@
     "backup": "./scripts/backup.sh",
     "restore": "./scripts/restore.sh",
     "backup:selective": "./scripts/backup-selective.sh",
-    "restore:selective": "./scripts/restore-selective.sh"
+    "restore:selective": "./scripts/restore-selective.sh",
+    "seo:generate": "node scripts/bulk-seo-generator.js",
+    "seo:test": "node scripts/test-seo-implementation.js",
+    "seo:status": "curl -s http://localhost:1337/api/essays/seo-status | json_pp"
   },
   "dependencies": {
     "@ckeditor/strapi-plugin-ckeditor": "^1.1.1",

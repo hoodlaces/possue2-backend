@@ -1,29 +1,56 @@
-# Production robots.txt for Legal Education/Bar Exam Prep Site
+# Robots.txt for Possue Legal Education
+# California Bar Exam Preparation Platform
+
 User-agent: *
 Allow: /
 
-# Sitemap location
-Sitemap: https://possue2-backend.onrender.com/sitemap.xml
+# Prioritize important content for legal education
+Allow: /essays/
+Allow: /subjects/
+Allow: /answers/
 
-# Disallow admin and API endpoints from search engines
+# Block admin and API endpoints from crawling
 Disallow: /admin/
 Disallow: /api/
 Disallow: /_health
 Disallow: /uploads/
+Disallow: /_next/
+
+# Block search and filter pages to avoid duplicate content
+Disallow: /search*
+Disallow: /*?*
+
+# Allow specific beneficial query parameters
+Allow: /essays/*?year=*
+Allow: /subjects/*?page=*
 
 # Allow specific API endpoints that should be indexed
 Allow: /api/subjects/seo
 Allow: /api/essays/seo 
 Allow: /api/answers/seo
 
-# Common crawl delays for different bots
+# Crawl delay for respectful crawling
 User-agent: Googlebot
 Crawl-delay: 1
 
 User-agent: Bingbot
 Crawl-delay: 2
 
-# Block aggressive crawlers
+# Special instructions for educational content crawlers
+User-agent: EDU-bot
+Allow: /
+
+User-agent: ScholarBot
+Allow: /
+
+# Legal research bots
+User-agent: LexisNexis
+Allow: /
+
+User-agent: Westlaw
+Allow: /
+
+# Block aggressive crawlers that don't benefit legal education
 User-agent: SemrushBot
 Disallow: /
 
@@ -32,3 +59,7 @@ Disallow: /
 
 User-agent: MJ12bot
 Disallow: /
+
+# Sitemap locations
+Sitemap: https://possue.com/sitemap.xml
+Sitemap: https://possue.com/sitemap-index.xml

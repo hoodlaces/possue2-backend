@@ -115,24 +115,63 @@ module.exports = ({ env }) => ({
     config: {
       contentTypes: {
         "api::subject.subject": {
-          priority: 0.8,
+          priority: 0.9,
           changefreq: "weekly",
-          fields: ["title", "slug", "updatedAt"],
+          fields: ["title", "slug", "updatedAt", "description"],
+          lastmod: "updatedAt",
+          filter: (entry) => entry.publishedAt !== null,
         },
         "api::essay.essay": {
-          priority: 0.7,
+          priority: 0.8,
           changefreq: "monthly", 
           fields: ["title", "slug", "updatedAt", "month", "year"],
+          lastmod: "updatedAt",
+          filter: (entry) => entry.publishedAt !== null,
+          transform: (entry) => ({
+            ...entry,
+            alternates: [
+              {
+                href: `https://possue.com/essays/${entry.slug}`,
+                hreflang: 'en-US'
+              }
+            ]
+          })
         },
         "api::answer.answer": {
-          priority: 0.6,
+          priority: 0.7,
           changefreq: "monthly",
           fields: ["title", "slug", "updatedAt"],
+          lastmod: "updatedAt",
+          filter: (entry) => entry.publishedAt !== null,
         },
       },
-      hostname: env("SITEMAP_HOSTNAME", "https://possue2-backend.onrender.com"),
+      hostname: env("SITEMAP_HOSTNAME", "https://possue.com"),
       includeHomepage: true,
       excludeDrafts: true,
+      limit: 50000,
+      gzip: true,
+      xsl: true,
+      // Custom static pages for legal education
+      customEntries: [
+        {
+          url: "/subjects",
+          changefreq: "weekly",
+          priority: 0.9,
+          lastmod: new Date().toISOString()
+        },
+        {
+          url: "/about",
+          changefreq: "monthly",
+          priority: 0.5,
+          lastmod: new Date().toISOString()
+        },
+        {
+          url: "/contact",
+          changefreq: "monthly",
+          priority: 0.4,
+          lastmod: new Date().toISOString()
+        }
+      ]
     },
   },
 });
