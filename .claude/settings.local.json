@@ -102,7 +102,12 @@
       "Bash(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -f /tmp/sync_all_subjects.sql)",
       "Bash(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -f /tmp/remove_duplicates_fixed.sql)",
       "Bash(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql:*)",
-      "WebFetch(domain:possue.com)"
+      "WebFetch(domain:possue.com)",
+      "Bash(touch:*)",
+      "Bash(npm run seo:test:*)",
+      "Bash(npm run seo:generate:*)",
+      "Bash(render:*)",
+      "Bash(openssl rand:*)"
     ],
     "deny": []
   }

@@ -7,6 +7,9 @@
 
 'use strict';
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 const { Pool } = require('pg');
 const https = require('https');
 const fs = require('fs');

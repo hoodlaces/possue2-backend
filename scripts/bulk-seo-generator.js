@@ -7,6 +7,9 @@
 
 'use strict';
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 // Using PostgreSQL directly with pg client
 const { Pool } = require('pg');
 
