@@ -1,0 +1,22 @@
+Selective Backup Manifest
+========================
+Timestamp: 20250624-201058
+Database: remote
+Created: Tue Jun 24 20:10:59 PDT 2025
+
+Content Tables (for sync):
+- essays, essays_cmps, essays_subjects_lnk, essays_answer_lnk
+- answers, answers_cmps
+
+Safety Tables (preserve these):
+- admin_users, admin_users_roles_lnk, admin_roles, admin_permissions, admin_permissions_role_lnk
+- up_users, up_users_role_lnk, up_roles, up_permissions, up_permissions_role_lnk
+- subjects, subjects_cmps
+
+Relationship Tables:
+- components_shared_seos, components_shared_seos_cmps, components_shared_meta_socials
+
+Backup Files:
+- content-essays-answers-20250624-201058.sql
+- safety-users-subjects-20250624-201058.sql
+- relationships-20250624-201058.sql

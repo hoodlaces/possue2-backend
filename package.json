@@ -10,9 +10,14 @@
     "build:dev": "NODE_ENV=development strapi build",
     "strapi": "strapi",
     "start:prod": "NODE_ENV=production strapi start",
-    "start:dev": "strapi develop"
+    "start:dev": "strapi develop",
+    "backup": "./scripts/backup.sh",
+    "restore": "./scripts/restore.sh",
+    "backup:selective": "./scripts/backup-selective.sh",
+    "restore:selective": "./scripts/restore-selective.sh"
   },
   "dependencies": {
+    "@ckeditor/strapi-plugin-ckeditor": "^1.1.1",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
@@ -27,6 +32,7 @@
     "react-router-dom": "^6.0.0",
     "sharp": "^0.30.7",
     "strapi-5-sitemap-plugin": "^1.0.7",
+    "strapi-import-export": "^0.0.1",
     "styled-components": "^6.0.0",
     "uuid": "^11.1.0"
   },
