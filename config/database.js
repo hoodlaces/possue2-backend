@@ -1,10 +1,13 @@
 module.exports = ({ env }) => {
-  // Check if we're explicitly in production mode with DATABASE_URL
-  if (env('DATABASE_URL') && (env('NODE_ENV') === 'production' || process.env.NODE_ENV === 'production')) {
+  // Check if we have DATABASE_URL set (production mode)
+  if (env('DATABASE_URL')) {
     return {
       connection: {
         client: 'postgres',
-        connection: env('DATABASE_URL'),
+        connection: {
+          connectionString: env('DATABASE_URL'),
+          ssl: env('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
+        },
         acquireConnectionTimeout: 60000,
         pool: {
           min: 2,
