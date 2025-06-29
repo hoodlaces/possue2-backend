@@ -4,7 +4,7 @@
 The Render service is showing password authentication errors despite successful password rotation because the `DATABASE_URL` contains special characters that need URL encoding.
 
 ## Root Cause
-The password `O2fKkJe6XxEkUIJs0Fd9bDTjw88nVEU3NtYxxsHUlQg=` contains an `=` character that must be URL-encoded as `%3D` when used in a connection string.
+The database password contains special characters (like `=`) that must be URL-encoded when used in a connection string.
 
 ## Solution
 
@@ -12,10 +12,12 @@ The password `O2fKkJe6XxEkUIJs0Fd9bDTjw88nVEU3NtYxxsHUlQg=` contains an `=` char
 
 Go to your Render service dashboard: https://dashboard.render.com/web/srv-cbng55ha6gds3kmf2890
 
-**Replace your current `DATABASE_URL` with:**
+**Replace your current `DATABASE_URL` with the properly URL-encoded version:**
 ```
-postgresql://possue2_db_v5_user:O2fKkJe6XxEkUIJs0Fd9bDTjw88nVEU3NtYxxsHUlQg%3D@dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com:5432/possue2_db_v5?sslmode=require
+postgresql://possue2_db_v5_user:[URL_ENCODED_PASSWORD]@dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com:5432/possue2_db_v5?sslmode=require
 ```
+
+**Note:** Replace `[URL_ENCODED_PASSWORD]` with your actual password that has special characters URL-encoded (e.g., `=` becomes `%3D`, `/` becomes `%2F`).
 
 **Key changes:**
 - Password `=` is now encoded as `%3D`
@@ -63,7 +65,7 @@ DATABASE_HOST=dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com
 DATABASE_PORT=5432
 DATABASE_NAME=possue2_db_v5
 DATABASE_USERNAME=possue2_db_v5_user
-DATABASE_PASSWORD=O2fKkJe6XxEkUIJs0Fd9bDTjw88nVEU3NtYxxsHUlQg=
+DATABASE_PASSWORD=[YOUR_ACTUAL_PASSWORD]
 ```
 
 **Note:** The individual `DATABASE_PASSWORD` does NOT need URL encoding - only the `DATABASE_URL` does.
@@ -73,7 +75,7 @@ DATABASE_PASSWORD=O2fKkJe6XxEkUIJs0Fd9bDTjw88nVEU3NtYxxsHUlQg=
 If you want to test locally with the same configuration:
 
 ```bash
-export DATABASE_URL="postgresql://possue2_db_v5_user:O2fKkJe6XxEkUIJs0Fd9bDTjw88nVEU3NtYxxsHUlQg%3D@dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com:5432/possue2_db_v5?sslmode=require"
+export DATABASE_URL="postgresql://possue2_db_v5_user:[URL_ENCODED_PASSWORD]@dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com:5432/possue2_db_v5?sslmode=require"
 npm run develop
 ```
 

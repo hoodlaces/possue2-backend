@@ -57,7 +57,7 @@ PGPASSWORD=1212 pg_dump -h 127.0.0.1 -p 5432 -U postgres \
   | grep -E "(1943|1944|1945)" > new-essays.sql
 
 # 2. Import to remote
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql \
+PGPASSWORD=$DATABASE_PASSWORD psql \
   -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com \
   -p 5432 -U possue2_db_v5_user -d possue2_db_v5 < new-essays.sql
 ```
