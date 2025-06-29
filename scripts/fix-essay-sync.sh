@@ -3,6 +3,19 @@
 # Fix Essay Sync Script
 # Fixes missing slugs, subject relations, and other sync issues
 
+# Check if required environment variables are set
+if [ -z "$DATABASE_PASSWORD" ]; then
+    echo "❌ ERROR: DATABASE_PASSWORD environment variable is required"
+    echo "Please set your database password: export DATABASE_PASSWORD=your_password"
+    exit 1
+fi
+
+# Set default values for database connection
+DATABASE_HOST=${DATABASE_HOST:-"dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com"}
+DATABASE_PORT=${DATABASE_PORT:-"5432"}
+DATABASE_NAME=${DATABASE_NAME:-"possue2_db_v5"}
+DATABASE_USERNAME=${DATABASE_USERNAME:-"possue2_db_v5_user"}
+
 echo "🔧 Fixing Essay Sync Issues"
 echo "=========================="
 
@@ -10,7 +23,7 @@ echo "=========================="
 echo "📝 Step 1: Updating missing slugs..."
 
 # Get essays without slugs and generate UPDATE statements
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "
+PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "
     SELECT 'UPDATE essays SET slug = ' || quote_literal(
         lower(
             regexp_replace(
@@ -27,7 +40,7 @@ PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.o
 
 # Execute slug updates
 echo "Updating slugs..."
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -f /tmp/update-slugs.sql
+PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -f /tmp/update-slugs.sql
 
 echo "✅ Slugs updated!"
 
@@ -130,11 +143,11 @@ echo ""
 echo "👤 Step 3: Fixing user IDs and timestamps..."
 
 # Get user ID from an existing essay
-DEFAULT_USER_ID=$(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT created_by_id FROM essays WHERE created_by_id IS NOT NULL LIMIT 1;" | tr -d ' ')
+DEFAULT_USER_ID=$(PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT created_by_id FROM essays WHERE created_by_id IS NOT NULL LIMIT 1;" | tr -d ' ')
 
 if [ ! -z "$DEFAULT_USER_ID" ]; then
     echo "Using default user ID: $DEFAULT_USER_ID"
-    PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -c "
+    PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -c "
         UPDATE essays 
         SET created_by_id = $DEFAULT_USER_ID, 
             updated_by_id = $DEFAULT_USER_ID,
@@ -148,19 +161,19 @@ fi
 # Execute subject relations sync
 echo ""
 echo "🔗 Executing subject relations sync..."
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -f /tmp/sync_subjects.sql
+PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -f /tmp/sync_subjects.sql
 
 # Verify results
 echo ""
 echo "📊 Verification:"
 echo "Essays with slugs:"
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT COUNT(*) FROM essays WHERE slug IS NOT NULL AND slug != '';"
+PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT COUNT(*) FROM essays WHERE slug IS NOT NULL AND slug != '';"
 
 echo "Essays with subject relations:"
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT COUNT(DISTINCT essay_id) FROM essays_subjects_lnk;"
+PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT COUNT(DISTINCT essay_id) FROM essays_subjects_lnk;"
 
 echo "Total subject links:"
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT COUNT(*) FROM essays_subjects_lnk;"
+PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT COUNT(*) FROM essays_subjects_lnk;"
 
 # Cleanup
 rm -f /tmp/update-slugs.sql /tmp/sync_subjects.sql /tmp/local_subject_relations.txt /tmp/create_id_mapping.sql

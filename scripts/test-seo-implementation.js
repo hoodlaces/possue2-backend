@@ -18,9 +18,15 @@ const pool = new Pool({
   port: process.env.DATABASE_PORT || 5432,
   database: process.env.DATABASE_NAME || 'possue2_db_v5',
   user: process.env.DATABASE_USERNAME || 'possue2_db_v5_user',
-  password: process.env.DATABASE_PASSWORD || 'eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn',
+  password: process.env.DATABASE_PASSWORD,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
+
+// Validate required environment variables
+if (!process.env.DATABASE_PASSWORD) {
+  console.error('❌ DATABASE_PASSWORD environment variable is required');
+  process.exit(1);
+}
 
 /**
  * Test database SEO coverage

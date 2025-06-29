@@ -3,6 +3,19 @@
 # Selective Backup Script for Content Sync
 # Creates targeted backups for essays, answers, and safety backups for users/subjects
 
+# Check if required environment variables are set
+if [ -z "$DATABASE_PASSWORD" ]; then
+    echo "❌ ERROR: DATABASE_PASSWORD environment variable is required"
+    echo "Please set your database password: export DATABASE_PASSWORD=your_password"
+    exit 1
+fi
+
+# Set default values for database connection
+DATABASE_HOST=${DATABASE_HOST:-"dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com"}
+DATABASE_PORT=${DATABASE_PORT:-"5432"}
+DATABASE_NAME=${DATABASE_NAME:-"possue2_db_v5"}
+DATABASE_USERNAME=${DATABASE_USERNAME:-"possue2_db_v5_user"}
+
 # Create backups directory if it doesn't exist
 mkdir -p backups/selective
 
@@ -28,9 +41,9 @@ backup_tables() {
             > "backups/selective/${backup_name}-${TIMESTAMP}.sql"
     else
         # For remote database
-        PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn pg_dump \
-            -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com \
-            -p 5432 -U possue2_db_v5_user -d possue2_db_v5 \
+        PGPASSWORD=$DATABASE_PASSWORD pg_dump \
+            -h $DATABASE_HOST \
+            -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME \
             --data-only \
             $(printf -- "-t %s " "${tables[@]}") \
             > "backups/selective/${backup_name}-${TIMESTAMP}.sql"

@@ -3,6 +3,19 @@
 # Direct SQL Sync for New Essays
 # Safely syncs specific new essays to remote database
 
+# Check if required environment variables are set
+if [ -z "$DATABASE_PASSWORD" ]; then
+    echo "❌ ERROR: DATABASE_PASSWORD environment variable is required"
+    echo "Please set your database password: export DATABASE_PASSWORD=your_password"
+    exit 1
+fi
+
+# Set default values for database connection
+DATABASE_HOST=${DATABASE_HOST:-"dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com"}
+DATABASE_PORT=${DATABASE_PORT:-"5432"}
+DATABASE_NAME=${DATABASE_NAME:-"possue2_db_v5"}
+DATABASE_USERNAME=${DATABASE_USERNAME:-"possue2_db_v5_user"}
+
 echo "🔄 Starting direct sync of new essays..."
 
 # Create temporary SQL file for new essays
@@ -110,9 +123,9 @@ echo ""
 echo "🚀 Syncing to remote database..."
 
 # Execute the sync
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql \
-    -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com \
-    -p 5432 -U possue2_db_v5_user -d possue2_db_v5 \
+PGPASSWORD=$DATABASE_PASSWORD psql \
+    -h $DATABASE_HOST \
+    -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME \
     -f "$TEMP_SQL"
 
 if [ $? -eq 0 ]; then
@@ -120,9 +133,9 @@ if [ $? -eq 0 ]; then
     
     echo ""
     echo "📊 Verification - Remote database after sync:"
-    PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql \
-        -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com \
-        -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -c "
+    PGPASSWORD=$DATABASE_PASSWORD psql \
+        -h $DATABASE_HOST \
+        -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -c "
         SELECT 'Published Essays' as type, count(*) FROM essays WHERE published_at IS NOT NULL
         UNION
         SELECT 'Total Essays', count(*) FROM essays
@@ -134,9 +147,9 @@ if [ $? -eq 0 ]; then
     
     echo ""
     echo "📝 Latest essays on remote:"
-    PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql \
-        -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com \
-        -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -c "
+    PGPASSWORD=$DATABASE_PASSWORD psql \
+        -h $DATABASE_HOST \
+        -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -c "
         SELECT id, title, 
                CASE WHEN published_at IS NOT NULL THEN 'Published' ELSE 'Draft' END as status
         FROM essays 

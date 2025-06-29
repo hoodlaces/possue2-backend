@@ -4,6 +4,19 @@
 # Syncs ALL missing essays (draft + published pairs) from local to remote database
 # Goal: Match local published count (258) on remote
 
+# Check if required environment variables are set
+if [ -z "$DATABASE_PASSWORD" ]; then
+    echo "❌ ERROR: DATABASE_PASSWORD environment variable is required"
+    echo "Please set your database password: export DATABASE_PASSWORD=your_password"
+    exit 1
+fi
+
+# Set default values for database connection
+DATABASE_HOST=${DATABASE_HOST:-"dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com"}
+DATABASE_PORT=${DATABASE_PORT:-"5432"}
+DATABASE_NAME=${DATABASE_NAME:-"possue2_db_v5"}
+DATABASE_USERNAME=${DATABASE_USERNAME:-"possue2_db_v5_user"}
+
 echo "🔄 Complete Essay Sync - Draft + Published Pairs"
 echo "================================================"
 
@@ -11,8 +24,8 @@ echo "================================================"
 echo "📊 Current Status:"
 LOCAL_TOTAL=$(PGPASSWORD=1212 psql -h 127.0.0.1 -p 5432 -U postgres -d strapi-marketplace-v5 -t -c "SELECT COUNT(*) FROM essays;")
 LOCAL_PUBLISHED=$(PGPASSWORD=1212 psql -h 127.0.0.1 -p 5432 -U postgres -d strapi-marketplace-v5 -t -c "SELECT COUNT(*) FROM essays WHERE published_at IS NOT NULL;")
-REMOTE_TOTAL=$(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT COUNT(*) FROM essays;")
-REMOTE_PUBLISHED=$(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT COUNT(*) FROM essays WHERE published_at IS NOT NULL;")
+REMOTE_TOTAL=$(PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT COUNT(*) FROM essays;")
+REMOTE_PUBLISHED=$(PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT COUNT(*) FROM essays WHERE published_at IS NOT NULL;")
 
 echo "Local:  $LOCAL_TOTAL total ($LOCAL_PUBLISHED published)"
 echo "Remote: $REMOTE_TOTAL total ($REMOTE_PUBLISHED published)"
@@ -26,7 +39,7 @@ echo "🔍 Finding missing essays..."
 PGPASSWORD=1212 psql -h 127.0.0.1 -p 5432 -U postgres -d strapi-marketplace-v5 -t -c "SELECT id FROM essays ORDER BY id;" > /tmp/local_essay_ids.txt
 
 # Get all remote essay IDs  
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT id FROM essays ORDER BY id;" > /tmp/remote_essay_ids.txt
+PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT id FROM essays ORDER BY id;" > /tmp/remote_essay_ids.txt
 
 # Find missing IDs
 comm -23 <(sort /tmp/local_essay_ids.txt) <(sort /tmp/remote_essay_ids.txt) > /tmp/missing_essay_ids.txt
@@ -60,7 +73,7 @@ if [ "$confirmation" != "yes" ]; then
 fi
 
 # Get the next available ID from remote to avoid conflicts
-NEXT_REMOTE_ID=$(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT COALESCE(MAX(id), 0) + 1 FROM essays;")
+NEXT_REMOTE_ID=$(PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT COALESCE(MAX(id), 0) + 1 FROM essays;")
 echo "🆔 Next available remote ID: $NEXT_REMOTE_ID"
 
 # Export ALL essays that don't exist in remote, reassigning IDs
@@ -110,9 +123,9 @@ echo "📝 Prepared $SYNC_COUNT essays for sync"
 
 # Import to remote
 echo "🚀 Importing essays to remote database..."
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql \
-    -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com \
-    -p 5432 -U possue2_db_v5_user -d possue2_db_v5 \
+PGPASSWORD=$DATABASE_PASSWORD psql \
+    -h $DATABASE_HOST \
+    -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME \
     -f /tmp/complete-essays-sync.sql
 
 if [ $? -eq 0 ]; then
@@ -121,8 +134,8 @@ if [ $? -eq 0 ]; then
     # Verify final counts
     echo ""
     echo "📊 Final Verification:"
-    FINAL_REMOTE_TOTAL=$(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT COUNT(*) FROM essays;")
-    FINAL_REMOTE_PUBLISHED=$(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT COUNT(*) FROM essays WHERE published_at IS NOT NULL;")
+    FINAL_REMOTE_TOTAL=$(PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT COUNT(*) FROM essays;")
+    FINAL_REMOTE_PUBLISHED=$(PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT COUNT(*) FROM essays WHERE published_at IS NOT NULL;")
     
     echo "Local:  $LOCAL_TOTAL total ($LOCAL_PUBLISHED published)"
     echo "Remote: $FINAL_REMOTE_TOTAL total ($FINAL_REMOTE_PUBLISHED published)"

@@ -19,7 +19,7 @@ async function checkDatabaseCount(database = 'local') {
           port: '5432', 
           user: 'possue2_db_v5_user',
           dbname: 'possue2_db_v5',
-          password: 'eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn'
+          password: process.env.DATABASE_PASSWORD
         };
 
     const query = `SELECT 

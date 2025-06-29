@@ -3,13 +3,26 @@
 # Sync New Essays Script
 # Syncs only new essays from local to remote database
 
+# Check if required environment variables are set
+if [ -z "$DATABASE_PASSWORD" ]; then
+    echo "❌ ERROR: DATABASE_PASSWORD environment variable is required"
+    echo "Please set your database password: export DATABASE_PASSWORD=your_password"
+    exit 1
+fi
+
+# Set default values for database connection
+DATABASE_HOST=${DATABASE_HOST:-"dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com"}
+DATABASE_PORT=${DATABASE_PORT:-"5432"}
+DATABASE_NAME=${DATABASE_NAME:-"possue2_db_v5"}
+DATABASE_USERNAME=${DATABASE_USERNAME:-"possue2_db_v5_user"}
+
 echo "🔄 Syncing new essays from local to remote..."
 
 # Get the latest essay IDs from both databases
 echo "📊 Checking essay status..."
 
 # Get max ID from remote
-REMOTE_MAX_ID=$(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT COALESCE(MAX(id), 0) FROM essays;")
+REMOTE_MAX_ID=$(PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT COALESCE(MAX(id), 0) FROM essays;")
 
 # Get new essays from local (IDs greater than remote max)
 echo "🔍 Finding new essays with ID > $REMOTE_MAX_ID"
@@ -46,9 +59,9 @@ fi
 
 # Import new essays to remote
 echo "🚀 Importing new essays to remote database..."
-PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql \
-    -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com \
-    -p 5432 -U possue2_db_v5_user -d possue2_db_v5 < /tmp/new-essays.sql
+PGPASSWORD=$DATABASE_PASSWORD psql \
+    -h $DATABASE_HOST \
+    -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME < /tmp/new-essays.sql
 
 if [ $? -eq 0 ]; then
     echo "✅ New essays imported successfully!"
@@ -65,9 +78,9 @@ if [ $? -eq 0 ]; then
         > /tmp/new-essays-subjects.sql
     
     # Import relationships
-    PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql \
-        -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com \
-        -p 5432 -U possue2_db_v5_user -d possue2_db_v5 < /tmp/new-essays-subjects.sql
+    PGPASSWORD=$DATABASE_PASSWORD psql \
+        -h $DATABASE_HOST \
+        -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME < /tmp/new-essays-subjects.sql
     
     echo "✅ Essay relationships synced!"
     
@@ -77,7 +90,7 @@ if [ $? -eq 0 ]; then
     echo "Local essays:"
     PGPASSWORD=1212 psql -h 127.0.0.1 -p 5432 -U postgres -d strapi-marketplace-v5 -t -c "SELECT count(*) FROM essays WHERE published_at IS NOT NULL;"
     echo "Remote essays:"
-    PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -t -c "SELECT count(*) FROM essays WHERE published_at IS NOT NULL;"
+    PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME -t -c "SELECT count(*) FROM essays WHERE published_at IS NOT NULL;"
     
 else
     echo "❌ Import failed!"

@@ -3,6 +3,19 @@
 # Selective Restore Script
 # Restores specific content types from selective backups
 
+# Check if required environment variables are set
+if [ -z "$DATABASE_PASSWORD" ]; then
+    echo "❌ ERROR: DATABASE_PASSWORD environment variable is required"
+    echo "Please set your database password: export DATABASE_PASSWORD=your_password"
+    exit 1
+fi
+
+# Set default values for database connection
+DATABASE_HOST=${DATABASE_HOST:-"dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com"}
+DATABASE_PORT=${DATABASE_PORT:-"5432"}
+DATABASE_NAME=${DATABASE_NAME:-"possue2_db_v5"}
+DATABASE_USERNAME=${DATABASE_USERNAME:-"possue2_db_v5_user"}
+
 if [ -z "$1" ] || [ -z "$2" ]; then
     echo "Usage: $0 <backup-type> <timestamp> [database-type]"
     echo ""
@@ -43,9 +56,9 @@ restore_backup() {
     if [ "$DATABASE_TYPE" = "local" ]; then
         PGPASSWORD=1212 psql -h 127.0.0.1 -p 5432 -U postgres -d strapi-marketplace-v5 < "$backup_file"
     else
-        PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql \
-            -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com \
-            -p 5432 -U possue2_db_v5_user -d possue2_db_v5 < "$backup_file"
+        PGPASSWORD=$DATABASE_PASSWORD psql \
+            -h $DATABASE_HOST \
+            -p $DATABASE_PORT -U $DATABASE_USERNAME -d $DATABASE_NAME < "$backup_file"
     fi
     
     if [ $? -eq 0 ]; then
