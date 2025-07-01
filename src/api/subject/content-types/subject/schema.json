@@ -36,6 +36,12 @@
       "relation": "manyToMany",
       "target": "api::essay.essay",
       "mappedBy": "subjects"
+    },
+    "userSubmissions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::user-essay-submission.user-essay-submission",
+      "mappedBy": "subject"
     }
   }
 }
