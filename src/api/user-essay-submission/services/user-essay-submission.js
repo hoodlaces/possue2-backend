@@ -79,7 +79,7 @@ module.exports = createCoreService('api::user-essay-submission.user-essay-submis
           <h3 style="margin-top: 0;">${submission.title}</h3>
           <p><strong>Submitter:</strong> ${submission.submitterName}</p>
           <p><strong>Email:</strong> ${submission.submitterEmail}</p>
-          <p><strong>Year:</strong> ${submission.submitterYear}</p>
+          <p><strong>Year:</strong> ${this.formatSubmitterYear(submission.submitterYear)}</p>
           <p><strong>Law School:</strong> ${submission.lawSchool || 'Not specified'}</p>
           <p><strong>Type:</strong> ${submission.submissionType}</p>
           <p><strong>Subject:</strong> ${submission.subject?.title || 'Not specified'}</p>
@@ -262,5 +262,20 @@ module.exports = createCoreService('api::user-essay-submission.user-essay-submis
   validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+  },
+
+  /**
+   * Format submitter year for display
+   */
+  formatSubmitterYear(year) {
+    const yearMap = {
+      'FirstYear': '1L',
+      'SecondYear': '2L', 
+      'ThirdYear': '3L',
+      'Graduate': 'Graduate',
+      'Attorney': 'Attorney',
+      'Other': 'Other'
+    };
+    return yearMap[year] || year;
   }
 }));

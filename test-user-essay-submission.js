@@ -14,7 +14,7 @@ const TEST_SUBMISSION = {
   submissionType: 'essay',
   submitterName: 'Test Student',
   submitterEmail: 'test.student@lawschool.edu',
-  submitterYear: '3L',
+  submitterYear: 'ThirdYear',
   lawSchool: 'Test Law School',
   graduationYear: 2024,
   agreedToTerms: true,

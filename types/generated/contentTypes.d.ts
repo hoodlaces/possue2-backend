@@ -492,6 +492,122 @@ export interface ApiSubjectSubject extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    userSubmissions: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::user-essay-submission.user-essay-submission'
+    >;
+  };
+}
+
+export interface ApiUserEssaySubmissionUserEssaySubmission
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'user_essay_submissions';
+  info: {
+    description: 'User-submitted essays for review and potential publication';
+    displayName: 'User Essay Submission';
+    pluralName: 'user-essay-submissions';
+    singularName: 'user-essay-submission';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  pluginOptions: {
+    'users-permissions': {
+      authenticatedUser: true;
+    };
+  };
+  attributes: {
+    agreedToTerms: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    attachments: Schema.Attribute.Media<'files' | 'images', true>;
+    barExamDate: Schema.Attribute.Date;
+    content: Schema.Attribute.RichText & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    featuredSubmission: Schema.Attribute.Boolean &
+      Schema.Attribute.Private &
+      Schema.Attribute.DefaultTo<false>;
+    graduationYear: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 2050;
+          min: 1900;
+        },
+        number
+      >;
+    ipAddress: Schema.Attribute.String & Schema.Attribute.Private;
+    isAnonymous: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    lawSchool: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::user-essay-submission.user-essay-submission'
+    > &
+      Schema.Attribute.Private;
+    moderationNotes: Schema.Attribute.Text & Schema.Attribute.Private;
+    originalScore: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
+    publishedAt: Schema.Attribute.DateTime;
+    publishingConsent: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    rejectionDetails: Schema.Attribute.Text;
+    rejectionReason: Schema.Attribute.Enumeration<
+      [
+        'inappropriate-content',
+        'poor-quality',
+        'duplicate',
+        'off-topic',
+        'copyright-violation',
+        'other',
+      ]
+    >;
+    reviewedAt: Schema.Attribute.DateTime & Schema.Attribute.Private;
+    reviewedBy: Schema.Attribute.Relation<'manyToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'under-review', 'approved', 'rejected', 'needs-revision']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    subject: Schema.Attribute.Relation<'manyToOne', 'api::subject.subject'>;
+    submissionDate: Schema.Attribute.DateTime &
+      Schema.Attribute.DefaultTo<'now'>;
+    submissionType: Schema.Attribute.Enumeration<
+      ['essay', 'practice-question', 'case-study', 'analysis']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'essay'>;
+    submitterEmail: Schema.Attribute.Email & Schema.Attribute.Required;
+    submitterName: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    submitterYear: Schema.Attribute.Enumeration<
+      ['FirstYear', 'SecondYear', 'ThirdYear', 'Graduate', 'Attorney', 'Other']
+    > &
+      Schema.Attribute.Required;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userAgent: Schema.Attribute.String & Schema.Attribute.Private;
   };
 }
 
@@ -1129,6 +1245,7 @@ declare module '@strapi/strapi' {
       'api::answer.answer': ApiAnswerAnswer;
       'api::essay.essay': ApiEssayEssay;
       'api::subject.subject': ApiSubjectSubject;
+      'api::user-essay-submission.user-essay-submission': ApiUserEssaySubmissionUserEssaySubmission;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

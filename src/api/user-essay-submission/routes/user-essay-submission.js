@@ -47,7 +47,7 @@ const customRoutes = {
       path: '/user-essay-submissions/:id/status',
       handler: 'user-essay-submission.updateStatus',
       config: {
-        policies: ['admin::is-owner'],
+        policies: ['global::is-admin'],
         middlewares: [],
       },
     },
@@ -56,7 +56,7 @@ const customRoutes = {
       path: '/user-essay-submissions/by-status/:status',
       handler: 'user-essay-submission.findByStatus',
       config: {
-        policies: ['admin::is-owner'],
+        policies: ['global::is-admin'],
         middlewares: [],
       },
     },
@@ -65,7 +65,7 @@ const customRoutes = {
       path: '/user-essay-submissions/statistics',
       handler: 'user-essay-submission.getStatistics',
       config: {
-        policies: ['admin::is-owner'],
+        policies: ['global::is-admin'],
         middlewares: [],
       },
     },
@@ -82,7 +82,7 @@ module.exports = {
       path: '/user-essay-submissions',
       handler: 'user-essay-submission.find',
       config: {
-        policies: ['admin::is-owner'], // Admin only for full list
+        policies: ['global::is-admin'], // Admin only for full list
         middlewares: [],
       },
     },
@@ -91,7 +91,7 @@ module.exports = {
       path: '/user-essay-submissions/:id',
       handler: 'user-essay-submission.findOne',
       config: {
-        policies: ['admin::is-owner'], // Admin only for individual items
+        policies: ['global::is-admin'], // Admin only for individual items
         middlewares: [],
       },
     },
@@ -100,7 +100,7 @@ module.exports = {
       path: '/user-essay-submissions/:id',
       handler: 'user-essay-submission.update',
       config: {
-        policies: ['admin::is-owner'], // Admin only for updates
+        policies: ['global::is-admin'], // Admin only for updates
         middlewares: [],
       },
     },
@@ -109,7 +109,7 @@ module.exports = {
       path: '/user-essay-submissions/:id',
       handler: 'user-essay-submission.delete',
       config: {
-        policies: ['admin::is-owner'], // Admin only for deletion
+        policies: ['global::is-admin'], // Admin only for deletion
         middlewares: [],
       },
     },

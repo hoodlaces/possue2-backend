@@ -48,7 +48,7 @@
     },
     "submitterYear": {
       "type": "enumeration",
-      "enum": ["1L", "2L", "3L", "Graduate", "Attorney", "Other"],
+      "enum": ["FirstYear", "SecondYear", "ThirdYear", "Graduate", "Attorney", "Other"],
       "required": true
     },
     "lawSchool": {
