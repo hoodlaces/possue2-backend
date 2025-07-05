@@ -1,4 +1,29 @@
 module.exports = ({ env }) => ({
+  // Email provider configuration for Strapi v5
+  email: {
+    config: {
+      provider: 'sendgrid',
+      providerOptions: {
+        apiKey: env('SENDGRID_API_KEY'),
+      },
+      settings: {
+        defaultFrom: env('SENDGRID_FROM_EMAIL'),
+        defaultReplyTo: env('SENDGRID_FROM_EMAIL'),
+        testAddress: env('SENDGRID_TEST_EMAIL'),
+      },
+    },
+  },
+  // Users-permissions plugin configuration for Strapi v5
+  'users-permissions': {
+    config: {
+      register: {
+        allowedFields: ['username', 'email', 'password'],
+      },
+      jwt: {
+        expiresIn: '7d',
+      },
+    },
+  },
   // Official CKEditor 5 plugin for Strapi v5 - Enhanced for robust blog editing
   "ckeditor": {
     enabled: true,

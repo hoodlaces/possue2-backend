@@ -107,7 +107,9 @@
       "Bash(npm run seo:test:*)",
       "Bash(npm run seo:generate:*)",
       "Bash(render:*)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "Bash(yarn remove:*)",
+      "Bash(yarn develop)"
     ],
     "deny": []
   }

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification - Possue</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        .verification-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        .verification-button:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #7f8c8d;
+            text-align: center;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Possue</div>
+            <div class="subtitle">Legal Education Platform</div>
+        </div>
+        
+        <h2>Welcome to Possue!</h2>
+        
+        <p>Thank you for registering with Possue. To complete your registration and start accessing our legal education resources, please verify your email address.</p>
+        
+        <div style="text-align: center;">
+            <a href="<%= URL %>" class="verification-button">Verify Your Email</a>
+        </div>
+        
+        <div class="warning">
+            <strong>Important:</strong> This verification link will expire in 24 hours. If you didn't create an account with Possue, please ignore this email.
+        </div>
+        
+        <p>If the button above doesn't work, you can also copy and paste the following link into your browser:</p>
+        <p style="word-break: break-all; color: #3498db;"><%= URL %></p>
+        
+        <p>Once verified, you'll be able to:</p>
+        <ul>
+            <li>Access comprehensive legal study materials</li>
+            <li>Submit and track your essay submissions</li>
+            <li>View detailed feedback on your work</li>
+            <li>Monitor your progress and achievements</li>
+        </ul>
+        
+        <div class="footer">
+            <p>If you have any questions, please contact us at <a href="mailto:support@possue.com">support@possue.com</a></p>
+            <p>&copy; 2024 Possue. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

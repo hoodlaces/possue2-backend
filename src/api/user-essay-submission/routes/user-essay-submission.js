@@ -44,8 +44,17 @@ const customRoutes = {
     // Admin-only routes
     {
       method: 'PUT',
-      path: '/user-essay-submissions/:id/status',
-      handler: 'user-essay-submission.updateStatus',
+      path: '/user-essay-submissions/:id/approve',
+      handler: 'user-essay-submission.approve',
+      config: {
+        policies: ['global::is-admin'],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'PUT',
+      path: '/user-essay-submissions/:id/reject',
+      handler: 'user-essay-submission.reject',
       config: {
         policies: ['global::is-admin'],
         middlewares: [],
@@ -53,8 +62,8 @@ const customRoutes = {
     },
     {
       method: 'GET',
-      path: '/user-essay-submissions/by-status/:status',
-      handler: 'user-essay-submission.findByStatus',
+      path: '/user-essay-submissions/pending',
+      handler: 'user-essay-submission.findPending',
       config: {
         policies: ['global::is-admin'],
         middlewares: [],
