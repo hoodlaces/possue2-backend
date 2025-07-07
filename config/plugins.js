@@ -8,6 +8,7 @@ module.exports = ({ env }) => ({
       },
       settings: {
         defaultFrom: env('SENDGRID_FROM_EMAIL'),
+        defaultFromName: env('SENDGRID_FROM_NAME'),
         defaultReplyTo: env('SENDGRID_FROM_EMAIL'),
         testAddress: env('SENDGRID_TEST_EMAIL'),
       },
@@ -21,6 +22,11 @@ module.exports = ({ env }) => ({
       },
       jwt: {
         expiresIn: '7d',
+      },
+      email: {
+        confirmation: {
+          // No redirect - let our custom controller return JSON for auto-login
+        },
       },
     },
   },

@@ -109,7 +109,11 @@
       "Bash(render:*)",
       "Bash(openssl rand:*)",
       "Bash(yarn remove:*)",
-      "Bash(yarn develop)"
+      "Bash(yarn develop)",
+      "Bash(NODE_ENV=production DATABASE_URL=\"postgresql://possue2_db_v5_user:eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn@dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com:5432/possue2_db_v5\" node test-db-connection.js)",
+      "Bash(NODE_ENV=production DATABASE_URL=\"postgresql://possue2_db_v5_user:Xe%2FawaXl5gvTXKqKdZi5oGzkLisexhJdAHHGSh4bsQQ%3D@dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com:5432/possue2_db_v5?sslmode=require\" node test-db-connection.js)",
+      "Bash(./update-render-env.sh:*)",
+      "Bash(-H \"Content-Type: application/json\")"
     ],
     "deny": []
   }

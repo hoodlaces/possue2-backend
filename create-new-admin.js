@@ -2,11 +2,11 @@ const bcrypt = require('bcryptjs');
 const { Client } = require('pg');
 
 const dbConfig = {
-  host: '127.0.0.1',
-  port: 5432,
-  database: 'strapi-marketplace-v5',
-  user: 'postgres',
-  password: '1212'
+  host: process.env.DATABASE_HOST || '127.0.0.1',
+  port: process.env.DATABASE_PORT || 5432,
+  database: process.env.DATABASE_NAME || 'strapi-marketplace-v5',
+  user: process.env.DATABASE_USERNAME || 'postgres',
+  password: process.env.DATABASE_PASSWORD
 };
 
 async function createNewAdmin() {
@@ -16,7 +16,7 @@ async function createNewAdmin() {
     await client.connect();
     
     // Hash the password
-    const password = 'Accusync70';
+    const password = process.env.ADMIN_PASSWORD || 'ChangeMe123!';
     const hashedPassword = await bcrypt.hash(password, 10);
     
     // Create new admin user with specific ID
