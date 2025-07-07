@@ -1,0 +1,50 @@
+{
+  "kind": "collectionType",
+  "collectionName": "law_schools",
+  "info": {
+    "singularName": "law-school",
+    "pluralName": "law-schools",
+    "displayName": "Law School",
+    "description": "ABA-accredited law schools for user profiles"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "state": {
+      "type": "string",
+      "required": true
+    },
+    "city": {
+      "type": "string",
+      "required": true
+    },
+    "tier": {
+      "type": "enumeration",
+      "enum": ["T14", "T1", "T2", "T3", "Unranked"],
+      "required": true
+    },
+    "schoolType": {
+      "type": "enumeration",
+      "enum": ["Public", "Private", "ForProfit"],
+      "required": true
+    },
+    "abaAccredited": {
+      "type": "boolean",
+      "default": true
+    },
+    "ranking": {
+      "type": "integer",
+      "min": 1
+    },
+    "website": {
+      "type": "string"
+    }
+  }
+}

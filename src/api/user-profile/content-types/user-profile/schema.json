@@ -1,0 +1,163 @@
+{
+  "kind": "collectionType",
+  "collectionName": "user_profiles",
+  "info": {
+    "singularName": "user-profile",
+    "pluralName": "user-profiles",
+    "displayName": "User Profile",
+    "description": "Law student profile information"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "profile"
+    },
+    "lawSchoolYear": {
+      "type": "enumeration",
+      "enum": ["FirstYear", "SecondYear", "ThirdYear", "Graduate", "JDCandidate", "Other"],
+      "required": false
+    },
+    "expectedGraduationDate": {
+      "type": "date",
+      "required": false
+    },
+    "currentSemester": {
+      "type": "enumeration",
+      "enum": ["Fall", "Spring", "Summer"],
+      "required": false
+    },
+    "currentAcademicYear": {
+      "type": "integer",
+      "min": 2020,
+      "max": 2035
+    },
+    "academicStanding": {
+      "type": "enumeration",
+      "enum": ["TopTenPercent", "TopTwentyFivePercent", "TopFiftyPercent", "Other", "PreferNotToSay"],
+      "required": false
+    },
+    "gpaRange": {
+      "type": "enumeration",
+      "enum": ["HighGPA", "AboveAverageGPA", "AverageGPA", "BelowAverageGPA", "PreferNotToSay"],
+      "required": false
+    },
+    "lawSchool": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::law-school.law-school"
+    },
+    "programType": {
+      "type": "enumeration",
+      "enum": ["FullTime", "PartTime", "Evening", "Online", "Hybrid"],
+      "required": false
+    },
+    "targetBarExamDate": {
+      "type": "date",
+      "required": false
+    },
+    "targetBarJurisdictions": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::bar-jurisdiction.bar-jurisdiction"
+    },
+    "barPrepCourse": {
+      "type": "enumeration",
+      "enum": ["Barbri", "Kaplan", "Themis", "AdaptiBar", "SelfStudy", "Undecided", "Other"],
+      "required": false
+    },
+    "barPrepTimeline": {
+      "type": "enumeration",
+      "enum": ["EightPlusWeeks", "SixToEightWeeks", "FourToSixWeeks", "LessThanFourWeeks", "Undecided"],
+      "required": false
+    },
+    "practiceAreaInterests": {
+      "type": "json",
+      "description": "Array of practice areas of interest"
+    },
+    "firmSizePreference": {
+      "type": "enumeration",
+      "enum": ["BigLaw", "MidSize", "SmallFirm", "SoloPractice", "InHouse", "NonProfit", "Government"],
+      "required": false
+    },
+    "geographicPreference": {
+      "type": "json",
+      "description": "Preferred cities/states for practice"
+    },
+    "salaryExpectation": {
+      "type": "enumeration",
+      "enum": ["Range50to75k", "Range75to100k", "Range100to150k", "Range150to200k", "Over200k", "PreferNotToSay"],
+      "required": false
+    },
+    "judicialClerkshipInterest": {
+      "type": "enumeration",
+      "enum": ["Federal", "State", "Administrative", "NotInterested"],
+      "required": false
+    },
+    "undergraduateInstitution": {
+      "type": "string",
+      "required": false
+    },
+    "undergraduateMajor": {
+      "type": "enumeration",
+      "enum": ["PreLaw", "PoliticalScience", "Business", "STEM", "LiberalArts", "Other"],
+      "required": false
+    },
+    "yearsBetweenUndergradeAndLaw": {
+      "type": "enumeration",
+      "enum": ["ZeroYears", "OneToTwoYears", "ThreeToFiveYears", "FivePlusYears"],
+      "required": false
+    },
+    "previousWorkExperience": {
+      "type": "enumeration",
+      "enum": ["Legal", "Corporate", "NonProfit", "Government", "Other", "None"],
+      "required": false
+    },
+    "lawReviewParticipation": {
+      "type": "boolean",
+      "default": false
+    },
+    "mootCourtParticipation": {
+      "type": "boolean",
+      "default": false
+    },
+    "studyMethod": {
+      "type": "enumeration",
+      "enum": ["Visual", "Auditory", "ReadingWriting", "Kinesthetic", "Mixed"],
+      "required": false
+    },
+    "studySchedule": {
+      "type": "enumeration",
+      "enum": ["Morning", "Afternoon", "Evening", "LateNight", "Mixed"],
+      "required": false
+    },
+    "studyMaterials": {
+      "type": "json",
+      "description": "Preferred study materials (outlines, flashcards, etc.)"
+    },
+    "studyGroupPreference": {
+      "type": "enumeration",
+      "enum": ["Solo", "SmallGroups", "LargeGroups", "Mixed"],
+      "required": false
+    },
+    "profileCompletionPercentage": {
+      "type": "integer",
+      "min": 0,
+      "max": 100,
+      "default": 0
+    },
+    "marketingOptIn": {
+      "type": "boolean",
+      "default": false
+    },
+    "dataAnalyticsOptIn": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

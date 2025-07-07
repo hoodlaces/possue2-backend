@@ -412,6 +412,57 @@ export interface ApiAnswerAnswer extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiBarJurisdictionBarJurisdiction
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'bar_jurisdictions';
+  info: {
+    description: 'US states and territories for bar examination';
+    displayName: 'Bar Jurisdiction';
+    pluralName: 'bar-jurisdictions';
+    singularName: 'bar-jurisdiction';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    abbreviation: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 3;
+      }>;
+    barPassingScore: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 300;
+          min: 0;
+        },
+        number
+      >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    examDates: Schema.Attribute.JSON;
+    isUBE: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::bar-jurisdiction.bar-jurisdiction'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    reciprocityAgreements: Schema.Attribute.JSON;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiEssayEssay extends Struct.CollectionTypeSchema {
   collectionName: 'essays';
   info: {
@@ -451,6 +502,54 @@ export interface ApiEssayEssay extends Struct.CollectionTypeSchema {
         maxLength: 4;
         minLength: 4;
       }>;
+  };
+}
+
+export interface ApiLawSchoolLawSchool extends Struct.CollectionTypeSchema {
+  collectionName: 'law_schools';
+  info: {
+    description: 'ABA-accredited law schools for user profiles';
+    displayName: 'Law School';
+    pluralName: 'law-schools';
+    singularName: 'law-school';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    abaAccredited: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    city: Schema.Attribute.String & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::law-school.law-school'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    publishedAt: Schema.Attribute.DateTime;
+    ranking: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      >;
+    schoolType: Schema.Attribute.Enumeration<
+      ['Public', 'Private', 'ForProfit']
+    > &
+      Schema.Attribute.Required;
+    state: Schema.Attribute.String & Schema.Attribute.Required;
+    tier: Schema.Attribute.Enumeration<['T14', 'T1', 'T2', 'T3', 'Unranked']> &
+      Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    website: Schema.Attribute.String;
   };
 }
 
@@ -550,6 +649,171 @@ export interface ApiUserEssaySubmissionUserEssaySubmission
         number
       > &
       Schema.Attribute.DefaultTo<0>;
+  };
+}
+
+export interface ApiUserProfileUserProfile extends Struct.CollectionTypeSchema {
+  collectionName: 'user_profiles';
+  info: {
+    description: 'Law student profile information';
+    displayName: 'User Profile';
+    pluralName: 'user-profiles';
+    singularName: 'user-profile';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    academicStanding: Schema.Attribute.Enumeration<
+      [
+        'TopTenPercent',
+        'TopTwentyFivePercent',
+        'TopFiftyPercent',
+        'Other',
+        'PreferNotToSay',
+      ]
+    >;
+    barPrepCourse: Schema.Attribute.Enumeration<
+      [
+        'Barbri',
+        'Kaplan',
+        'Themis',
+        'AdaptiBar',
+        'SelfStudy',
+        'Undecided',
+        'Other',
+      ]
+    >;
+    barPrepTimeline: Schema.Attribute.Enumeration<
+      [
+        'EightPlusWeeks',
+        'SixToEightWeeks',
+        'FourToSixWeeks',
+        'LessThanFourWeeks',
+        'Undecided',
+      ]
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    currentAcademicYear: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 2035;
+          min: 2020;
+        },
+        number
+      >;
+    currentSemester: Schema.Attribute.Enumeration<['Fall', 'Spring', 'Summer']>;
+    dataAnalyticsOptIn: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    expectedGraduationDate: Schema.Attribute.Date;
+    firmSizePreference: Schema.Attribute.Enumeration<
+      [
+        'BigLaw',
+        'MidSize',
+        'SmallFirm',
+        'SoloPractice',
+        'InHouse',
+        'NonProfit',
+        'Government',
+      ]
+    >;
+    geographicPreference: Schema.Attribute.JSON;
+    gpaRange: Schema.Attribute.Enumeration<
+      [
+        'HighGPA',
+        'AboveAverageGPA',
+        'AverageGPA',
+        'BelowAverageGPA',
+        'PreferNotToSay',
+      ]
+    >;
+    judicialClerkshipInterest: Schema.Attribute.Enumeration<
+      ['Federal', 'State', 'Administrative', 'NotInterested']
+    >;
+    lawReviewParticipation: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    lawSchool: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::law-school.law-school'
+    >;
+    lawSchoolYear: Schema.Attribute.Enumeration<
+      [
+        'FirstYear',
+        'SecondYear',
+        'ThirdYear',
+        'Graduate',
+        'JDCandidate',
+        'Other',
+      ]
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::user-profile.user-profile'
+    > &
+      Schema.Attribute.Private;
+    marketingOptIn: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    mootCourtParticipation: Schema.Attribute.Boolean &
+      Schema.Attribute.DefaultTo<false>;
+    practiceAreaInterests: Schema.Attribute.JSON;
+    previousWorkExperience: Schema.Attribute.Enumeration<
+      ['Legal', 'Corporate', 'NonProfit', 'Government', 'Other', 'None']
+    >;
+    profileCompletionPercentage: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    programType: Schema.Attribute.Enumeration<
+      ['FullTime', 'PartTime', 'Evening', 'Online', 'Hybrid']
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    salaryExpectation: Schema.Attribute.Enumeration<
+      [
+        'Range50to75k',
+        'Range75to100k',
+        'Range100to150k',
+        'Range150to200k',
+        'Over200k',
+        'PreferNotToSay',
+      ]
+    >;
+    studyGroupPreference: Schema.Attribute.Enumeration<
+      ['Solo', 'SmallGroups', 'LargeGroups', 'Mixed']
+    >;
+    studyMaterials: Schema.Attribute.JSON;
+    studyMethod: Schema.Attribute.Enumeration<
+      ['Visual', 'Auditory', 'ReadingWriting', 'Kinesthetic', 'Mixed']
+    >;
+    studySchedule: Schema.Attribute.Enumeration<
+      ['Morning', 'Afternoon', 'Evening', 'LateNight', 'Mixed']
+    >;
+    targetBarExamDate: Schema.Attribute.Date;
+    targetBarJurisdictions: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::bar-jurisdiction.bar-jurisdiction'
+    >;
+    undergraduateInstitution: Schema.Attribute.String;
+    undergraduateMajor: Schema.Attribute.Enumeration<
+      ['PreLaw', 'PoliticalScience', 'Business', 'STEM', 'LiberalArts', 'Other']
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
+    yearsBetweenUndergradeAndLaw: Schema.Attribute.Enumeration<
+      ['ZeroYears', 'OneToTwoYears', 'ThreeToFiveYears', 'FivePlusYears']
+    >;
   };
 }
 
@@ -1130,7 +1394,6 @@ export interface PluginUsersPermissionsUser
   };
   options: {
     draftAndPublish: false;
-    timestamps: true;
   };
   attributes: {
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
@@ -1155,6 +1418,10 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    profile: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::user-profile.user-profile'
+    >;
     provider: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     resetPasswordToken: Schema.Attribute.String & Schema.Attribute.Private;
@@ -1185,9 +1452,12 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::answer.answer': ApiAnswerAnswer;
+      'api::bar-jurisdiction.bar-jurisdiction': ApiBarJurisdictionBarJurisdiction;
       'api::essay.essay': ApiEssayEssay;
+      'api::law-school.law-school': ApiLawSchoolLawSchool;
       'api::subject.subject': ApiSubjectSubject;
       'api::user-essay-submission.user-essay-submission': ApiUserEssaySubmissionUserEssaySubmission;
+      'api::user-profile.user-profile': ApiUserProfileUserProfile;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

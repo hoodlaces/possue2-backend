@@ -71,51 +71,54 @@ module.exports = createCoreService('api::user-essay-submission.user-essay-submis
    * Generate admin notification email HTML
    */
   generateAdminNotificationEmail(submission) {
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2c3e50;">New Essay Submission</h2>
-        
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="margin-top: 0;">${submission.title}</h3>
-          <p><strong>Submitter:</strong> ${submission.submitterName}</p>
-          <p><strong>Email:</strong> ${submission.submitterEmail}</p>
-          <p><strong>Year:</strong> ${this.formatSubmitterYear(submission.submitterYear)}</p>
-          <p><strong>Law School:</strong> ${submission.lawSchool || 'Not specified'}</p>
-          <p><strong>Type:</strong> ${submission.submissionType}</p>
-          <p><strong>Subject:</strong> ${submission.subject?.title || 'Not specified'}</p>
-          <p><strong>Submitted:</strong> ${new Date(submission.submissionDate).toLocaleString()}</p>
-        </div>
-        
-        <div style="margin: 20px 0;">
-          <h4>Content Preview:</h4>
-          <div style="background: #fff; border: 1px solid #dee2e6; padding: 15px; border-radius: 3px;">
-            ${submission.content.substring(0, 500)}${submission.content.length > 500 ? '...' : ''}
-          </div>
-        </div>
-        
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${process.env.ADMIN_URL || 'http://localhost:1337'}/admin/content-manager/collection-types/api::user-essay-submission.user-essay-submission" 
-             style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-            Review Submission
-          </a>
-        </div>
-        
-        <p style="color: #6c757d; font-size: 12px; text-align: center;">
-          This is an automated notification from Possue Legal Education Platform
-        </p>
+    const { generateEmailTemplate, generateInfoBox } = require('../../../utils/email-template');
+    
+    const submissionDetails = `
+      <p><strong>Submitter:</strong> ${submission.submitterName}</p>
+      <p><strong>Email:</strong> ${submission.submitterEmail}</p>
+      <p><strong>Year:</strong> ${this.formatSubmitterYear(submission.submitterYear)}</p>
+      <p><strong>Law School:</strong> ${submission.lawSchool || 'Not specified'}</p>
+      <p><strong>Type:</strong> ${submission.submissionType}</p>
+      <p><strong>Subject:</strong> ${submission.subject?.title || 'Not specified'}</p>
+      <p><strong>Submitted:</strong> ${new Date(submission.submissionDate).toLocaleString()}</p>
+    `;
+    
+    const contentPreview = `
+      <h4>Content Preview:</h4>
+      <div style="background: #fff; border: 1px solid #dee2e6; padding: 15px; border-radius: 3px; margin-top: 10px;">
+        ${submission.content.substring(0, 500)}${submission.content.length > 500 ? '...' : ''}
       </div>
     `;
+    
+    const emailContent = `
+      <p>A new essay submission has been received and is ready for review.</p>
+      
+      ${generateInfoBox(submission.title, submissionDetails)}
+      
+      ${contentPreview}
+    `;
+    
+    return generateEmailTemplate({
+      title: 'New Essay Submission',
+      heading: 'New Essay Submission Received',
+      content: emailContent,
+      buttonText: 'Review Submission',
+      buttonUrl: `${process.env.ADMIN_URL || 'http://localhost:1337'}/admin/content-manager/collection-types/api::user-essay-submission.user-essay-submission`,
+      footerText: 'This is an automated notification from Possue Legal Education Platform'
+    });
   },
 
   /**
    * Generate submitter notification email HTML
    */
   generateSubmitterNotificationEmail(submission) {
+    const { generateEmailTemplate, generateInfoBox, generateStatusBadge } = require('../../../utils/email-template');
+    
     const statusMessages = {
-      'under-review': 'Your submission is currently under review by our editorial team.',
-      'approved': 'Congratulations! Your submission has been approved and will be published.',
-      'rejected': 'Unfortunately, your submission was not approved for publication.',
-      'needs-revision': 'Your submission requires some revisions before it can be approved.'
+      'under-review': 'Your submission is currently under review by our editorial team. We will notify you once the review is complete.',
+      'approved': 'Congratulations! Your submission has been approved and will be published on our platform.',
+      'rejected': 'Unfortunately, your submission was not approved for publication at this time.',
+      'needs-revision': 'Your submission requires some revisions before it can be approved. Please review the feedback below and submit a revised version.'
     };
     
     const statusColors = {
@@ -125,52 +128,34 @@ module.exports = createCoreService('api::user-essay-submission.user-essay-submis
       'needs-revision': '#ffc107'
     };
     
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2c3e50;">Submission Status Update</h2>
-        
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="margin-top: 0;">${submission.title}</h3>
-          <p><strong>Submitted on:</strong> ${new Date(submission.submissionDate).toLocaleDateString()}</p>
-          <p><strong>Status:</strong> 
-            <span style="background: ${statusColors[submission.status]}; color: white; padding: 4px 8px; border-radius: 3px; text-transform: capitalize;">
-              ${submission.status.replace('-', ' ')}
-            </span>
-          </p>
-        </div>
-        
-        <div style="margin: 20px 0;">
-          <p>${statusMessages[submission.status]}</p>
-          
-          ${submission.moderationNotes ? `
-            <div style="background: #e9ecef; padding: 15px; border-radius: 3px; margin: 15px 0;">
-              <h4 style="margin-top: 0;">Review Notes:</h4>
-              <p>${submission.moderationNotes}</p>
-            </div>
-          ` : ''}
-          
-          ${submission.rejectionDetails ? `
-            <div style="background: #f8d7da; padding: 15px; border-radius: 3px; margin: 15px 0;">
-              <h4 style="margin-top: 0;">Feedback:</h4>
-              <p>${submission.rejectionDetails}</p>
-            </div>
-          ` : ''}
-        </div>
-        
-        ${submission.status === 'needs-revision' ? `
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/submit-essay" 
-               style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              Submit Revision
-            </a>
-          </div>
-        ` : ''}
-        
-        <p style="color: #6c757d; font-size: 12px; text-align: center;">
-          Thank you for contributing to Possue Legal Education Platform
-        </p>
-      </div>
+    const submissionInfo = `
+      <p><strong>Submitted on:</strong> ${new Date(submission.submissionDate).toLocaleDateString()}</p>
+      <p><strong>Status:</strong> ${generateStatusBadge(submission.status, statusColors[submission.status])}</p>
     `;
+    
+    let additionalContent = `<p>${statusMessages[submission.status]}</p>`;
+    
+    if (submission.moderationNotes) {
+      additionalContent += generateInfoBox('Review Notes', `<p>${submission.moderationNotes}</p>`, '#e3f2fd');
+    }
+    
+    if (submission.rejectionDetails) {
+      additionalContent += generateInfoBox('Feedback', `<p>${submission.rejectionDetails}</p>`, '#ffebee');
+    }
+    
+    const emailContent = `
+      ${generateInfoBox(submission.title, submissionInfo)}
+      ${additionalContent}
+    `;
+    
+    return generateEmailTemplate({
+      title: 'Submission Status Update',
+      heading: 'Essay Submission Status Update',
+      content: emailContent,
+      buttonText: submission.status === 'needs-revision' ? 'Submit Revision' : null,
+      buttonUrl: submission.status === 'needs-revision' ? `${process.env.FRONTEND_URL || 'http://localhost:3000'}/submit-essay` : null,
+      footerText: 'Thank you for contributing to Possue Legal Education Platform'
+    });
   },
 
   /**

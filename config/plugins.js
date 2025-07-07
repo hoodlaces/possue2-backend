@@ -23,11 +23,7 @@ module.exports = ({ env }) => ({
       jwt: {
         expiresIn: '7d',
       },
-      email: {
-        confirmation: {
-          // No redirect - let our custom controller return JSON for auto-login
-        },
-      },
+      // Email confirmation handled by custom controller - no redirects
     },
   },
   // Official CKEditor 5 plugin for Strapi v5 - Enhanced for robust blog editing

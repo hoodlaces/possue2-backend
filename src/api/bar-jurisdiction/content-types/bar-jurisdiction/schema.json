@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "bar_jurisdictions",
+  "info": {
+    "singularName": "bar-jurisdiction",
+    "pluralName": "bar-jurisdictions",
+    "displayName": "Bar Jurisdiction",
+    "description": "US states and territories for bar examination"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "abbreviation": {
+      "type": "string",
+      "required": true,
+      "unique": true,
+      "maxLength": 3
+    },
+    "isUBE": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "examDates": {
+      "type": "json",
+      "description": "Available exam dates (February/July)"
+    },
+    "barPassingScore": {
+      "type": "integer",
+      "min": 0,
+      "max": 300
+    },
+    "reciprocityAgreements": {
+      "type": "json",
+      "description": "States with reciprocity agreements"
+    }
+  }
+}
