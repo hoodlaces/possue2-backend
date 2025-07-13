@@ -305,6 +305,159 @@ module.exports = (plugin) => {
       return ctx.badRequest('Email confirmation failed');
     }
   };
+
+  // Custom send email confirmation method
+  plugin.controllers.auth.sendEmailConfirmation = async (ctx) => {
+    const { email } = ctx.request.body;
+
+    strapi.log.info('=== CUSTOM SEND EMAIL CONFIRMATION START ===');
+    strapi.log.info(`Email: ${email ? email.substring(0, 3) + '***' : 'undefined'}`);
+
+    try {
+      // Validate email is provided
+      if (!email) {
+        strapi.log.error('No email provided');
+        return ctx.badRequest('Email is required');
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        strapi.log.error('Invalid email format');
+        return ctx.badRequest('Please enter a valid email address');
+      }
+
+      // Find user by email
+      strapi.log.info('Finding user by email...');
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { email }
+      });
+
+      if (!user) {
+        strapi.log.error('User not found with email');
+        return ctx.badRequest('No account found with this email address');
+      }
+
+      strapi.log.info(`Found user: ${user.email}, confirmed: ${user.confirmed}`);
+
+      // Check if user is already confirmed
+      if (user.confirmed) {
+        strapi.log.info('User already confirmed');
+        return ctx.badRequest('This email is already verified');
+      }
+
+      // Generate new confirmation token and expiry
+      const confirmationToken = crypto.randomBytes(32).toString('hex');
+      const expiryHours = strapi.config.get('plugin.users-permissions.confirmationTokenExpiry', 24);
+      const confirmationTokenExpiry = new Date(Date.now() + expiryHours * 60 * 60 * 1000);
+
+      strapi.log.info(`Generated new confirmation token (expires in ${expiryHours}h): ${confirmationToken.substring(0, 10)}...`);
+
+      // Update user with new confirmation token
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: user.id },
+        data: {
+          confirmationToken: confirmationToken,
+          confirmationTokenExpiry: confirmationTokenExpiry,
+        },
+      });
+
+      strapi.log.info('User updated with new confirmation token');
+
+      // Send confirmation email
+      const isDevelopment = process.env.NODE_ENV === 'development' || process.env.EMAIL_BYPASS_DEVELOPMENT === 'true';
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      const confirmationUrl = `${clientUrl}/email-confirmation-redirection?confirmation=${confirmationToken}`;
+      
+      strapi.log.info('🔍 RESEND EMAIL DEBUG INFO:');
+      strapi.log.info(`   NODE_ENV: ${process.env.NODE_ENV || 'undefined'}`);
+      strapi.log.info(`   EMAIL_BYPASS_DEVELOPMENT: ${process.env.EMAIL_BYPASS_DEVELOPMENT || 'undefined'}`);
+      strapi.log.info(`   CLIENT_URL: ${process.env.CLIENT_URL || 'undefined'}`);
+      strapi.log.info(`   isDevelopment: ${isDevelopment}`);
+      strapi.log.info(`   confirmationUrl: ${confirmationUrl}`);
+      
+      if (isDevelopment) {
+        strapi.log.warn('🔧 DEVELOPMENT MODE: Email verification bypass enabled for resend');
+        strapi.log.warn(`📧 Resend Confirmation URL: ${confirmationUrl}`);
+        strapi.log.warn('🚨 This should NEVER happen in production!');
+        
+        return ctx.send({
+          message: 'Development mode: Check server logs for confirmation URL.',
+          developmentOnly: {
+            confirmationUrl: confirmationUrl,
+            confirmationToken: confirmationToken
+          }
+        });
+      }
+      
+      strapi.log.info('📧 PRODUCTION MODE: Sending resend confirmation email via SendGrid...');
+      
+      try {
+        // Load email template content
+        const fs = require('fs');
+        const path = require('path');
+        const templatePath = path.join(strapi.dirs.app.src, 'extensions', 'users-permissions', 'email-templates', 'email-confirmation.html');
+        
+        strapi.log.info(`🔍 RESEND EMAIL TEMPLATE DEBUG:`);
+        strapi.log.info(`   Template path: ${templatePath}`);
+        
+        // Check if template file exists
+        if (!fs.existsSync(templatePath)) {
+          strapi.log.error(`❌ Email template not found at: ${templatePath}`);
+          throw new Error(`Email template not found at: ${templatePath}`);
+        }
+        
+        strapi.log.info(`✅ Email template found, loading content...`);
+        let emailTemplate = fs.readFileSync(templatePath, 'utf8');
+        strapi.log.info(`✅ Email template loaded (${emailTemplate.length} characters)`);
+        
+        // Replace template variables
+        emailTemplate = emailTemplate.replace(/<%= CLIENT_URL %>/g, clientUrl);
+        emailTemplate = emailTemplate.replace(/<%= CODE %>/g, confirmationToken);
+        
+        strapi.log.info(`🔍 RESEND EMAIL SEND DEBUG:`);
+        strapi.log.info(`   To: ${email}`);
+        strapi.log.info(`   From: ${process.env.SENDGRID_FROM_EMAIL}`);
+        strapi.log.info(`   Subject: Please confirm your email address - Possue`);
+        strapi.log.info(`   Confirmation URL: ${confirmationUrl}`);
+        
+        await strapi.plugin('email').service('email').send({
+          to: email,
+          from: process.env.SENDGRID_FROM_EMAIL,
+          subject: 'Please confirm your email address - Possue',
+          html: emailTemplate
+        });
+
+        strapi.log.info(`✅ Resend confirmation email sent successfully to ${email}`);
+        
+      } catch (emailError) {
+        strapi.log.error('❌ RESEND EMAIL ERROR:');
+        strapi.log.error(`   Error name: ${emailError.name}`);
+        strapi.log.error(`   Error message: ${emailError.message}`);
+        strapi.log.error(`   Error stack: ${emailError.stack}`);
+        strapi.log.error('Resend email error details:', {
+          apiKey: process.env.SENDGRID_API_KEY ? 'SET' : 'NOT SET',
+          fromEmail: process.env.SENDGRID_FROM_EMAIL,
+          toEmail: email,
+          error: emailError.message || emailError
+        });
+        
+        return ctx.internalServerError('Failed to send confirmation email. Please try again later.');
+      }
+
+      strapi.log.info('=== CUSTOM SEND EMAIL CONFIRMATION SUCCESS ===');
+      
+      return ctx.send({
+        message: 'Confirmation email sent successfully. Please check your inbox and spam folder.'
+      });
+
+    } catch (error) {
+      strapi.log.error('=== SEND EMAIL CONFIRMATION ERROR ===');
+      strapi.log.error('Error:', error);
+      
+      return ctx.internalServerError('Failed to resend confirmation email');
+    }
+  };
   
   return plugin;
 };
