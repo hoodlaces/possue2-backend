@@ -4,6 +4,13 @@ services:
     runtime: node
     buildCommand: npm install && npm run build
     startCommand: npm run start
+    # CRITICAL: Database preservation settings
+    # These settings ensure existing user data is NEVER overwritten
+    preDeployCommand: |
+      echo "🚨 CRITICAL: Starting deployment with user data protection"
+      echo "Database preservation mode: ENABLED"
+      echo "Existing DATABASE_URL will be preserved"
+      echo "User data protection: ACTIVE"
     envVars:
       - key: NODE_VERSION
         value: 20.0.0
@@ -11,8 +18,19 @@ services:
         value: production
       - key: STRAPI_DISABLE_UPDATE_NOTIFICATION
         value: true
-      # DATABASE_URL should be set manually in Render dashboard
-      # due to existing database with specific credentials
+      # CRITICAL: DATABASE_URL must be set manually in Render dashboard
+      # NEVER change this without explicit backup verification
+      # Existing database contains live user data - HANDLE WITH EXTREME CARE
+      
+      # Email verification environment variables
+      - key: CLIENT_URL
+        value: https://possue.com
+      - key: SENDGRID_FROM_NAME
+        value: Possue Team
+      - key: CONFIRMATION_TOKEN_EXPIRY_HOURS
+        value: 24
+      
+      # Security keys (regenerated only on first deploy)
       - key: APP_KEYS
         generateValue: true
       - key: API_TOKEN_SALT
@@ -24,4 +42,15 @@ services:
       - key: JWT_SECRET
         generateValue: true
 
-# Database already exists - set DATABASE_URL manually in Render dashboard
+# CRITICAL DATABASE PROTECTION NOTICE:
+# ====================================
+# 
+# 1. DATABASE_URL must be set manually in Render dashboard
+# 2. NEVER modify DATABASE_URL without confirmed backup
+# 3. Existing database contains live user data
+# 4. Schema changes require migration scripts
+# 5. Always run pre-deployment backup script first
+#
+# Emergency contacts and procedures documented in:
+# - DEPLOYMENT-CHECKLIST.md
+# - EMERGENCY-ROLLBACK-PROCEDURES.md

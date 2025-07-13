@@ -80,9 +80,7 @@
       "Bash(npm start)",
       "Bash(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -c \"\\dt\")",
       "Bash(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -c \"SELECT 'essays' as table_name, count(*) from essays UNION SELECT 'subjects', count(*) from subjects UNION SELECT 'answers', count(*) from answers;\")",
-      "Bash(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -c \"SELECT 'essays' as table_name, count(*) from essays UNION SELECT 'subjects', count(*) from subjects UNION SELECT 'answers', count(*) from answers;\")",
       "Bash(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -c \"\nTRUNCATE essays_subjects_lnk, essays_answer_lnk, essays, answers, subjects RESTART IDENTITY CASCADE;\n\")",
-      "Bash(PGPASSWORD=eOFn8Omh5hjqbk8UxoGBA6xEul1Z0zxn psql -h dpg-d1can6re5dus73fcd83g-a.oregon-postgres.render.com -p 5432 -U possue2_db_v5_user -d possue2_db_v5 -c \"SELECT 'essays' as table_name, count(*) from essays UNION SELECT 'subjects', count(*) from subjects UNION SELECT 'answers', count(*) from answers;\")",
       "Bash(npm view:*)",
       "Bash(npm run backup:selective:*)",
       "Bash(./scripts/sync-new-essays.sh:*)",
@@ -116,7 +114,9 @@
       "Bash(-H \"Content-Type: application/json\")",
       "Bash(npx @modelcontextprotocol/server-postgres:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm list:*)"
+      "Bash(pnpm list:*)",
+      "Bash(gunzip:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "practice_sessions",
+  "info": {
+    "singularName": "practice-session",
+    "pluralName": "practice-sessions",
+    "displayName": "Practice Session",
+    "description": "User essay practice sessions for leaderboard scoring"
+  },
+  "options": {
+    "draftAndPublish": true,
+    "comment": ""
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "sessionId": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "essayTitle": {
+      "type": "string",
+      "required": true,
+      "maxLength": 500
+    },
+    "wordCount": {
+      "type": "integer",
+      "required": true,
+      "default": 0,
+      "min": 0
+    },
+    "timeSpent": {
+      "type": "integer",
+      "required": true,
+      "default": 0,
+      "min": 0
+    },
+    "completedAt": {
+      "type": "datetime",
+      "required": true
+    },
+    "sessionData": {
+      "type": "json"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

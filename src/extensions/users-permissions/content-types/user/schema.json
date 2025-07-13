@@ -48,10 +48,22 @@
       "private": true,
       "searchable": false
     },
+    "confirmationTokenExpiry": {
+      "type": "datetime",
+      "configurable": false,
+      "private": true,
+      "searchable": false
+    },
     "confirmed": {
       "type": "boolean",
       "default": false,
       "configurable": false
+    },
+    "emailVerifiedAt": {
+      "type": "datetime",
+      "configurable": false,
+      "private": true,
+      "searchable": false
     },
     "blocked": {
       "type": "boolean",

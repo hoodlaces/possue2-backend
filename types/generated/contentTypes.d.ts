@@ -553,6 +553,70 @@ export interface ApiLawSchoolLawSchool extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPracticeSessionPracticeSession
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'practice_sessions';
+  info: {
+    description: 'User essay practice sessions for leaderboard scoring';
+    displayName: 'Practice Session';
+    pluralName: 'practice-sessions';
+    singularName: 'practice-session';
+  };
+  options: {
+    comment: '';
+    draftAndPublish: true;
+  };
+  attributes: {
+    completedAt: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    essayTitle: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 500;
+      }>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::practice-session.practice-session'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    sessionData: Schema.Attribute.JSON;
+    sessionId: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    timeSpent: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    wordCount: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<0>;
+  };
+}
+
 export interface ApiSubjectSubject extends Struct.CollectionTypeSchema {
   collectionName: 'subjects';
   info: {
@@ -1398,6 +1462,8 @@ export interface PluginUsersPermissionsUser
   attributes: {
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     confirmationToken: Schema.Attribute.String & Schema.Attribute.Private;
+    confirmationTokenExpiry: Schema.Attribute.DateTime &
+      Schema.Attribute.Private;
     confirmed: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1407,6 +1473,7 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 6;
       }>;
+    emailVerifiedAt: Schema.Attribute.DateTime & Schema.Attribute.Private;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1455,6 +1522,7 @@ declare module '@strapi/strapi' {
       'api::bar-jurisdiction.bar-jurisdiction': ApiBarJurisdictionBarJurisdiction;
       'api::essay.essay': ApiEssayEssay;
       'api::law-school.law-school': ApiLawSchoolLawSchool;
+      'api::practice-session.practice-session': ApiPracticeSessionPracticeSession;
       'api::subject.subject': ApiSubjectSubject;
       'api::user-essay-submission.user-essay-submission': ApiUserEssaySubmissionUserEssaySubmission;
       'api::user-profile.user-profile': ApiUserProfileUserProfile;
