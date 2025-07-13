@@ -97,6 +97,16 @@ module.exports = (plugin) => {
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
       const confirmationUrl = `${clientUrl}/email-confirmation-redirection?confirmation=${confirmationToken}`;
       
+      // ENHANCED DEBUG LOGGING
+      strapi.log.info('🔍 EMAIL VERIFICATION DEBUG INFO:');
+      strapi.log.info(`   NODE_ENV: ${process.env.NODE_ENV || 'undefined'}`);
+      strapi.log.info(`   EMAIL_BYPASS_DEVELOPMENT: ${process.env.EMAIL_BYPASS_DEVELOPMENT || 'undefined'}`);
+      strapi.log.info(`   CLIENT_URL: ${process.env.CLIENT_URL || 'undefined'}`);
+      strapi.log.info(`   isDevelopment: ${isDevelopment}`);
+      strapi.log.info(`   SENDGRID_API_KEY: ${process.env.SENDGRID_API_KEY ? 'SET (length: ' + process.env.SENDGRID_API_KEY.length + ')' : 'NOT SET'}`);
+      strapi.log.info(`   SENDGRID_FROM_EMAIL: ${process.env.SENDGRID_FROM_EMAIL || 'undefined'}`);
+      strapi.log.info(`   confirmationUrl: ${confirmationUrl}`);
+      
       if (isDevelopment) {
         strapi.log.warn('🔧 DEVELOPMENT MODE: Email verification bypass enabled');
         strapi.log.warn(`📧 Confirmation URL: ${confirmationUrl}`);
@@ -115,7 +125,7 @@ module.exports = (plugin) => {
         });
       }
       
-      strapi.log.info('Sending confirmation email...');
+      strapi.log.info('📧 PRODUCTION MODE: Sending confirmation email via SendGrid...');
       
       try {
         // Load email template content
@@ -123,18 +133,28 @@ module.exports = (plugin) => {
         const path = require('path');
         const templatePath = path.join(strapi.dirs.app.src, 'extensions', 'users-permissions', 'email-templates', 'email-confirmation.html');
         
+        strapi.log.info(`🔍 EMAIL TEMPLATE DEBUG:`);
+        strapi.log.info(`   Template path: ${templatePath}`);
+        
         // Check if template file exists
         if (!fs.existsSync(templatePath)) {
+          strapi.log.error(`❌ Email template not found at: ${templatePath}`);
           throw new Error(`Email template not found at: ${templatePath}`);
         }
         
+        strapi.log.info(`✅ Email template found, loading content...`);
         let emailTemplate = fs.readFileSync(templatePath, 'utf8');
+        strapi.log.info(`✅ Email template loaded (${emailTemplate.length} characters)`);
         
         // Replace template variables
         emailTemplate = emailTemplate.replace(/<%= CLIENT_URL %>/g, clientUrl);
         emailTemplate = emailTemplate.replace(/<%= CODE %>/g, confirmationToken);
         
-        strapi.log.info(`Sending email to ${email} with confirmation URL: ${confirmationUrl.substring(0, 50)}...`);
+        strapi.log.info(`🔍 EMAIL SEND DEBUG:`);
+        strapi.log.info(`   To: ${email}`);
+        strapi.log.info(`   From: ${process.env.SENDGRID_FROM_EMAIL}`);
+        strapi.log.info(`   Subject: Please confirm your email address - Possue`);
+        strapi.log.info(`   Confirmation URL: ${confirmationUrl}`);
         
         await strapi.plugin('email').service('email').send({
           to: email,
@@ -146,7 +166,11 @@ module.exports = (plugin) => {
         strapi.log.info(`✅ Confirmation email sent successfully to ${email}`);
         
       } catch (emailError) {
-        strapi.log.error('❌ Failed to send confirmation email:', emailError);
+        strapi.log.error('❌ DETAILED EMAIL ERROR:');
+        strapi.log.error(`   Error name: ${emailError.name}`);
+        strapi.log.error(`   Error message: ${emailError.message}`);
+        strapi.log.error(`   Error stack: ${emailError.stack}`);
+        strapi.log.error(`   Full error object:`, emailError);
         strapi.log.error('Email error details:', {
           apiKey: process.env.SENDGRID_API_KEY ? 'SET' : 'NOT SET',
           fromEmail: process.env.SENDGRID_FROM_EMAIL,
