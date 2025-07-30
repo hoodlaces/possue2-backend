@@ -1,2 +1,8 @@
 {
+  "workbench.colorCustomizations": {
+    "window.activeBorder": "#FF0000",
+    "window.inactiveBorder": "#FF0000",
+    "contrastBorder": "#FF0000",
+    "focusBorder": "#FF0000"
+  }
 }

@@ -676,23 +676,105 @@ export interface ApiUserEssaySubmissionUserEssaySubmission
     draftAndPublish: true;
   };
   attributes: {
+    agreedToTerms: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
+    attachments: Schema.Attribute.Media<'files' | 'images', true>;
+    barExamDate: Schema.Attribute.Date;
+    content: Schema.Attribute.RichText;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    essay_scores: Schema.Attribute.JSON;
     exam_session: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 100;
       }>;
+    featuredSubmission: Schema.Attribute.Boolean &
+      Schema.Attribute.Private &
+      Schema.Attribute.DefaultTo<false>;
     file: Schema.Attribute.Relation<'manyToOne', 'plugin::upload.file'>;
+    first_name: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    graduationYear: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 2050;
+          min: 1900;
+        },
+        number
+      >;
+    ipAddress: Schema.Attribute.String & Schema.Attribute.Private;
+    isAnonymous: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    last_name: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    lawSchool: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 200;
+      }>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::user-essay-submission.user-essay-submission'
     > &
       Schema.Attribute.Private;
+    moderationNotes: Schema.Attribute.Text & Schema.Attribute.Private;
+    originalScore: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      >;
     publishedAt: Schema.Attribute.DateTime;
+    publishingConsent: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
     rejection_reason: Schema.Attribute.Text & Schema.Attribute.Private;
+    rejectionDetails: Schema.Attribute.Text;
+    rejectionReason: Schema.Attribute.Enumeration<
+      [
+        'inappropriate-content',
+        'poor-quality',
+        'duplicate',
+        'off-topic',
+        'copyright-violation',
+        'other',
+      ]
+    >;
+    reviewedAt: Schema.Attribute.DateTime & Schema.Attribute.Private;
+    reviewedBy: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    > &
+      Schema.Attribute.Private;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'under-review', 'approved', 'rejected', 'needs-revision']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    subject: Schema.Attribute.Relation<'manyToOne', 'api::subject.subject'>;
+    submission_notes: Schema.Attribute.Text;
+    submissionDate: Schema.Attribute.DateTime;
+    submissionType: Schema.Attribute.Enumeration<
+      ['essay', 'practice-question', 'case-study', 'analysis']
+    > &
+      Schema.Attribute.DefaultTo<'essay'>;
+    submitterEmail: Schema.Attribute.Email & Schema.Attribute.Required;
+    submitterName: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 100;
+      }>;
+    submitterYear: Schema.Attribute.Enumeration<
+      ['FirstYear', 'SecondYear', 'ThirdYear', 'Graduate', 'Attorney', 'Other']
+    >;
     title: Schema.Attribute.String &
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMaxLength<{
@@ -705,6 +787,7 @@ export interface ApiUserEssaySubmissionUserEssaySubmission
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    userAgent: Schema.Attribute.String & Schema.Attribute.Private;
     view_count: Schema.Attribute.Integer &
       Schema.Attribute.SetMinMax<
         {
@@ -798,10 +881,7 @@ export interface ApiUserProfileUserProfile extends Struct.CollectionTypeSchema {
     >;
     lawReviewParticipation: Schema.Attribute.Boolean &
       Schema.Attribute.DefaultTo<false>;
-    lawSchool: Schema.Attribute.Relation<
-      'manyToOne',
-      'api::law-school.law-school'
-    >;
+    lawSchool: Schema.Attribute.String;
     lawSchoolYear: Schema.Attribute.Enumeration<
       [
         'FirstYear',
@@ -877,6 +957,71 @@ export interface ApiUserProfileUserProfile extends Struct.CollectionTypeSchema {
     >;
     yearsBetweenUndergradeAndLaw: Schema.Attribute.Enumeration<
       ['ZeroYears', 'OneToTwoYears', 'ThreeToFiveYears', 'FivePlusYears']
+    >;
+  };
+}
+
+export interface ApiUserRuleUserRule extends Struct.CollectionTypeSchema {
+  collectionName: 'user_rules';
+  info: {
+    description: 'Custom legal rules created by users for study purposes';
+    displayName: 'User Rule';
+    pluralName: 'user-rules';
+    singularName: 'user-rule';
+  };
+  options: {
+    comment: '';
+    draftAndPublish: true;
+  };
+  attributes: {
+    content: Schema.Attribute.RichText & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    difficulty: Schema.Attribute.Enumeration<['easy', 'medium', 'hard']> &
+      Schema.Attribute.DefaultTo<'medium'>;
+    isPublic: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::user-rule.user-rule'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    subject: Schema.Attribute.Enumeration<
+      [
+        'agency-and-partnership',
+        'business-associations',
+        'civil-procedure',
+        'community-property',
+        'constitutional-law',
+        'contracts',
+        'criminal-law',
+        'criminal-procedure',
+        'evidence',
+        'professional-responsibility',
+        'real-property',
+        'remedies',
+        'torts',
+        'wills-and-trusts',
+      ]
+    > &
+      Schema.Attribute.Required;
+    tags: Schema.Attribute.Text &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 500;
+      }>;
+    title: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 255;
+      }>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
     >;
   };
 }
@@ -1505,6 +1650,10 @@ export interface PluginUsersPermissionsUser
       Schema.Attribute.SetMinMaxLength<{
         minLength: 3;
       }>;
+    userRules: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::user-rule.user-rule'
+    >;
   };
 }
 
@@ -1526,6 +1675,7 @@ declare module '@strapi/strapi' {
       'api::subject.subject': ApiSubjectSubject;
       'api::user-essay-submission.user-essay-submission': ApiUserEssaySubmissionUserEssaySubmission;
       'api::user-profile.user-profile': ApiUserProfileUserProfile;
+      'api::user-rule.user-rule': ApiUserRuleUserRule;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

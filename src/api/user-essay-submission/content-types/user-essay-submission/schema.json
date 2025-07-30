@@ -18,10 +18,147 @@
       "required": true,
       "maxLength": 255
     },
+    "content": {
+      "type": "richtext",
+      "required": false
+    },
+    "submissionType": {
+      "type": "enumeration",
+      "enum": ["essay", "practice-question", "case-study", "analysis"],
+      "default": "essay"
+    },
+    "subject": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::subject.subject"
+    },
+    "submitterName": {
+      "type": "string",
+      "required": true,
+      "maxLength": 100
+    },
+    "submitterEmail": {
+      "type": "email",
+      "required": true
+    },
+    "submitterYear": {
+      "type": "enumeration",
+      "enum": ["FirstYear", "SecondYear", "ThirdYear", "Graduate", "Attorney", "Other"],
+      "required": false
+    },
+    "lawSchool": {
+      "type": "string",
+      "maxLength": 200,
+      "required": false
+    },
+    "graduationYear": {
+      "type": "integer",
+      "min": 1900,
+      "max": 2050,
+      "required": false
+    },
+    "attachments": {
+      "type": "media",
+      "multiple": true,
+      "required": false,
+      "allowedTypes": ["files", "images"]
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "under-review", "approved", "rejected", "needs-revision"],
+      "default": "pending",
+      "required": true
+    },
+    "moderationNotes": {
+      "type": "text",
+      "private": true,
+      "required": false
+    },
+    "reviewedBy": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "private": true
+    },
+    "reviewedAt": {
+      "type": "datetime",
+      "private": true,
+      "required": false
+    },
+    "rejectionReason": {
+      "type": "enumeration",
+      "enum": ["inappropriate-content", "poor-quality", "duplicate", "off-topic", "copyright-violation", "other"],
+      "required": false
+    },
+    "rejectionDetails": {
+      "type": "text",
+      "required": false
+    },
+    "originalScore": {
+      "type": "integer",
+      "min": 0,
+      "max": 100,
+      "required": false
+    },
+    "barExamDate": {
+      "type": "date",
+      "required": false
+    },
+    "isAnonymous": {
+      "type": "boolean",
+      "default": false
+    },
+    "agreedToTerms": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "publishingConsent": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
+    "featuredSubmission": {
+      "type": "boolean",
+      "default": false,
+      "private": true
+    },
+    "submissionDate": {
+      "type": "datetime",
+      "required": false
+    },
+    "ipAddress": {
+      "type": "string",
+      "private": true,
+      "required": false
+    },
+    "userAgent": {
+      "type": "string",
+      "private": true,
+      "required": false
+    },
     "exam_session": {
       "type": "string",
       "required": true,
       "maxLength": 100
+    },
+    "first_name": {
+      "type": "string",
+      "required": false,
+      "maxLength": 100
+    },
+    "last_name": {
+      "type": "string",
+      "required": false,
+      "maxLength": 100
+    },
+    "essay_scores": {
+      "type": "json",
+      "required": false
+    },
+    "submission_notes": {
+      "type": "text",
+      "required": false
     },
     "rejection_reason": {
       "type": "text",

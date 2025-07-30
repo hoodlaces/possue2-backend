@@ -116,7 +116,10 @@
       "Bash(pnpm add:*)",
       "Bash(pnpm list:*)",
       "Bash(gunzip:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(./scripts/pre-deployment-backup.sh:*)",
+      "Bash(timeout 10 curl -s http://localhost:1337/api/user-profiles)",
+      "Bash(./scripts/post-deployment-verification.sh:*)"
     ],
     "deny": []
   }

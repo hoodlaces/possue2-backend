@@ -78,6 +78,24 @@ const customRoutes = {
         middlewares: [],
       },
     },
+    {
+      method: 'PUT',
+      path: '/user-essay-submissions/:id/status',
+      handler: 'user-essay-submission.updateStatus',
+      config: {
+        policies: ['global::is-admin'],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'GET',
+      path: '/user-essay-submissions/by-status/:status',
+      handler: 'user-essay-submission.findByStatus',
+      config: {
+        policies: ['global::is-admin'],
+        middlewares: [],
+      },
+    },
   ]
 };
 

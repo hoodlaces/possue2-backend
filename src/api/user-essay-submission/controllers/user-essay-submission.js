@@ -26,12 +26,14 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
         return ctx.badRequest('Missing required fields: title and exam_session');
       }
       
-      // Prepare submission data (create as draft = pending)
+      // Prepare submission data (create as draft with pending status)
       const submissionData = {
         ...ctx.request.body.data,
         user: user.id,
         view_count: 0,
-        publishedAt: null // Keep as draft (pending status)
+        status: 'pending', // Set explicit status
+        submissionDate: new Date(), // Track when submitted
+        publishedAt: null // Keep as draft until approved
       };
       
       // Create the submission
@@ -67,7 +69,7 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
         filters: {
           user: user.id
         },
-        populate: ['user', 'file'],
+        populate: ['user', 'file', 'subject', 'reviewedBy', 'attachments'],
         publicationState: 'preview', // Show both draft and published
         sort: { createdAt: 'desc' }
       });
@@ -89,18 +91,24 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
     try {
       const { id } = ctx.params;
       
-      // Verify admin permissions
-      if (!ctx.state.user || ctx.state.user.role?.name !== 'Admin') {
+      // Verify admin permissions using consistent pattern
+      const { user } = ctx.state;
+      if (!user || (!user.isAdmin && user.role?.type !== 'admin')) {
         return ctx.forbidden('Admin access required');
       }
       
-      // Publish the submission (approve it)
+      // Approve the submission (both status and publish)
       const entity = await strapi.entityService.update('api::user-essay-submission.user-essay-submission', id, {
         data: {
-          publishedAt: new Date(),
-          rejection_reason: null // Clear any previous rejection
+          status: 'approved',
+          publishedAt: new Date(), // Strapi's publication system
+          reviewedBy: user.id,
+          reviewedAt: new Date(),
+          rejection_reason: null, // Clear any previous rejection
+          rejectionReason: null,
+          rejectionDetails: null
         },
-        populate: ['user', 'file']
+        populate: ['user', 'file', 'reviewedBy']
       });
       
       const sanitizedEntity = await this.sanitizeOutput(entity, ctx);
@@ -121,18 +129,24 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
       const { id } = ctx.params;
       const { rejection_reason } = ctx.request.body;
       
-      // Verify admin permissions
-      if (!ctx.state.user || ctx.state.user.role?.name !== 'Admin') {
+      // Verify admin permissions using consistent pattern
+      const { user } = ctx.state;
+      if (!user || (!user.isAdmin && user.role?.type !== 'admin')) {
         return ctx.forbidden('Admin access required');
       }
       
-      // Reject the submission (keep as draft with rejection reason)
+      // Reject the submission (both status and keep as draft)
       const entity = await strapi.entityService.update('api::user-essay-submission.user-essay-submission', id, {
         data: {
-          publishedAt: null, // Keep as draft
-          rejection_reason: rejection_reason || 'Submission rejected'
+          status: 'rejected',
+          publishedAt: null, // Keep as draft (unpublished)
+          reviewedBy: user.id,
+          reviewedAt: new Date(),
+          rejection_reason: rejection_reason || 'Submission rejected',
+          rejectionReason: 'other',
+          rejectionDetails: rejection_reason || 'Submission rejected'
         },
-        populate: ['user', 'file']
+        populate: ['user', 'file', 'reviewedBy']
       });
       
       const sanitizedEntity = await this.sanitizeOutput(entity, ctx);
@@ -150,8 +164,9 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
    */
   async findPending(ctx) {
     try {
-      // Verify admin permissions
-      if (!ctx.state.user || ctx.state.user.role?.name !== 'Admin') {
+      // Verify admin permissions using consistent pattern
+      const { user } = ctx.state;
+      if (!user || (!user.isAdmin && user.role?.type !== 'admin')) {
         return ctx.forbidden('Admin access required');
       }
       
@@ -159,10 +174,9 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
       
       const entities = await strapi.entityService.findMany('api::user-essay-submission.user-essay-submission', {
         filters: {
-          publishedAt: { $null: true },
-          rejection_reason: { $null: true }
+          status: { $eq: 'pending' }
         },
-        populate: ['user', 'file'],
+        populate: ['user', 'file', 'subject'],
         publicationState: 'preview',
         sort: { createdAt: 'desc' },
         start: (page - 1) * pageSize,
@@ -171,8 +185,7 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
       
       const total = await strapi.entityService.count('api::user-essay-submission.user-essay-submission', {
         filters: {
-          publishedAt: { $null: true },
-          rejection_reason: { $null: true }
+          status: { $eq: 'pending' }
         },
         publicationState: 'preview'
       });
@@ -202,8 +215,10 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
       const { page = 1, pageSize = 10 } = ctx.query;
       
       const entities = await strapi.entityService.findMany('api::user-essay-submission.user-essay-submission', {
-        filters: {}, // No additional filters needed - publicationState handles it
-        populate: ['user', 'file'],
+        filters: {
+          status: { $eq: 'approved' }
+        },
+        populate: ['user', 'file', 'subject'],
         publicationState: 'live', // Only published submissions
         sort: { publishedAt: 'desc' },
         start: (page - 1) * pageSize,
@@ -211,6 +226,9 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
       });
       
       const total = await strapi.entityService.count('api::user-essay-submission.user-essay-submission', {
+        filters: {
+          status: { $eq: 'approved' }
+        },
         publicationState: 'live'
       });
       
@@ -265,8 +283,9 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
    */
   async getStatistics(ctx) {
     try {
-      // Verify admin permissions
-      if (!ctx.state.user || ctx.state.user.role?.name !== 'Admin') {
+      // Verify admin permissions using consistent pattern
+      const { user } = ctx.state;
+      if (!user || (!user.isAdmin && user.role?.type !== 'admin')) {
         return ctx.forbidden('Admin access required');
       }
       
@@ -275,26 +294,44 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
       });
       const pendingSubmissions = await strapi.entityService.count('api::user-essay-submission.user-essay-submission', {
         filters: { 
-          publishedAt: { $null: true },
-          rejection_reason: { $null: true }
+          status: { $eq: 'pending' }
+        },
+        publicationState: 'preview'
+      });
+      const underReviewSubmissions = await strapi.entityService.count('api::user-essay-submission.user-essay-submission', {
+        filters: { 
+          status: { $eq: 'under-review' }
         },
         publicationState: 'preview'
       });
       const approvedSubmissions = await strapi.entityService.count('api::user-essay-submission.user-essay-submission', {
-        publicationState: 'live'
+        filters: { 
+          status: { $eq: 'approved' }
+        },
+        publicationState: 'preview'
       });
       const rejectedSubmissions = await strapi.entityService.count('api::user-essay-submission.user-essay-submission', {
         filters: { 
-          rejection_reason: { $notNull: true }
+          status: { $eq: 'rejected' }
+        },
+        publicationState: 'preview'
+      });
+      const needsRevisionSubmissions = await strapi.entityService.count('api::user-essay-submission.user-essay-submission', {
+        filters: { 
+          status: { $eq: 'needs-revision' }
         },
         publicationState: 'preview'
       });
       
       const statistics = {
-        total: totalSubmissions,
-        pending: pendingSubmissions,
-        approved: approvedSubmissions,
-        rejected: rejectedSubmissions
+        totalSubmissions: totalSubmissions,
+        statusCounts: {
+          pending: pendingSubmissions,
+          underReview: underReviewSubmissions,
+          approved: approvedSubmissions,
+          rejected: rejectedSubmissions,
+          needsRevision: needsRevisionSubmissions
+        }
       };
       
       return ctx.send(statistics);
@@ -302,6 +339,105 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
     } catch (error) {
       console.error('Get statistics error:', error);
       return ctx.internalServerError('Failed to fetch statistics');
+    }
+  },
+
+  /**
+   * Admin-only: Update submission status with moderation workflow
+   */
+  async updateStatus(ctx) {
+    try {
+      const { id } = ctx.params;
+      const { status, moderationNotes, rejectionReason, rejectionDetails } = ctx.request.body;
+      
+      // Verify admin permissions using consistent pattern
+      const { user } = ctx.state;
+      if (!user || (!user.isAdmin && user.role?.type !== 'admin')) {
+        return ctx.forbidden('Admin access required');
+      }
+      
+      const updateData = {
+        status: status,
+        reviewedBy: user.id,
+        reviewedAt: new Date(),
+      };
+      
+      if (moderationNotes) {
+        updateData.moderationNotes = moderationNotes;
+      }
+      
+      if (status === 'approved') {
+        updateData.publishedAt = new Date();
+        updateData.rejectionReason = null;
+        updateData.rejectionDetails = null;
+      } else if (status === 'rejected') {
+        updateData.publishedAt = null;
+        updateData.rejectionReason = rejectionReason;
+        updateData.rejectionDetails = rejectionDetails;
+      }
+      
+      const entity = await strapi.entityService.update('api::user-essay-submission.user-essay-submission', id, {
+        data: updateData,
+        populate: ['user', 'file', 'subject', 'reviewedBy']
+      });
+      
+      const sanitizedEntity = await this.sanitizeOutput(entity, ctx);
+      
+      return this.transformResponse(sanitizedEntity);
+      
+    } catch (error) {
+      console.error('Update status error:', error);
+      return ctx.internalServerError('Failed to update submission status');
+    }
+  },
+
+  /**
+   * Admin-only: Find submissions by status
+   */
+  async findByStatus(ctx) {
+    try {
+      const { status } = ctx.params;
+      const { page = 1, pageSize = 25 } = ctx.query;
+      
+      // Verify admin permissions using consistent pattern
+      const { user } = ctx.state;
+      if (!user || (!user.isAdmin && user.role?.type !== 'admin')) {
+        return ctx.forbidden('Admin access required');
+      }
+      
+      const filters = {};
+      if (status && status !== 'all') {
+        filters.status = { $eq: status };
+      }
+      
+      const entities = await strapi.entityService.findMany('api::user-essay-submission.user-essay-submission', {
+        filters,
+        populate: ['user', 'file', 'subject', 'reviewedBy'],
+        publicationState: 'preview',
+        sort: { createdAt: 'desc' },
+        start: (page - 1) * pageSize,
+        limit: pageSize
+      });
+      
+      const total = await strapi.entityService.count('api::user-essay-submission.user-essay-submission', {
+        filters,
+        publicationState: 'preview'
+      });
+      
+      const sanitizedEntities = await this.sanitizeOutput(entities, ctx);
+      
+      return this.transformResponse(sanitizedEntities, {
+        pagination: {
+          page: parseInt(page),
+          pageSize: parseInt(pageSize),
+          pageCount: Math.ceil(total / pageSize),
+          total
+        }
+      });
+      
+    } catch (error) {
+      console.error('Find by status error:', error);
+      return ctx.internalServerError('Failed to fetch submissions by status');
     }
   }
 }));

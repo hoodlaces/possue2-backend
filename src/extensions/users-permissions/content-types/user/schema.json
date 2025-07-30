@@ -82,6 +82,12 @@
       "relation": "oneToOne",
       "target": "api::user-profile.user-profile",
       "inversedBy": "user"
+    },
+    "userRules": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::user-rule.user-rule",
+      "mappedBy": "user"
     }
   }
 }

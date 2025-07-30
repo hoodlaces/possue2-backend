@@ -1,0 +1,21 @@
+{
+    "deployment": {
+        "timestamp": "20250713-181155",
+        "date": "2025-07-13T18:12:00-07:00",
+        "git_commit": "096eedcab4793000cb21575f83d085e6ee2ea00c",
+        "git_branch": "main",
+        "backup_location": "backups/pre-deployment",
+        "database_backup": "critical-backup-20250713-181155.sql",
+        "strapi_backup": "strapi-backup-20250713-181155.tar.gz"
+    },
+    "safety_checks": {
+        "backup_created": true,
+        "user_data_verified": true,
+        "migration_ready": true
+    },
+    "emergency_contact": {
+        "note": "If deployment fails, restore from these backups immediately",
+        "restore_command_db": "psql -h HOST -U USER -d DATABASE < backups/pre-deployment/database/critical-backup-20250713-181155.sql",
+        "restore_command_strapi": "npx strapi import -f backups/pre-deployment/strapi/strapi-backup-20250713-181155.tar.gz"
+    }
+}
