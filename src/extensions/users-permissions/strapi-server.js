@@ -23,9 +23,21 @@ module.exports = (plugin) => {
   });
 
   // Override registration and email confirmation methods
-  
+
+  // Debug: Check controller structure
+  console.log('🔍 plugin.controllers:', Object.keys(plugin.controllers || {}));
+  console.log('🔍 plugin.controllers.auth:', plugin.controllers.auth ? 'exists' : 'MISSING');
+  if (plugin.controllers.auth) {
+    console.log('🔍 auth methods:', Object.keys(plugin.controllers.auth));
+  }
+
   // Custom registration with enhanced logging and token management
   console.log('🔧 OVERRIDING plugin.controllers.auth.register');
+
+  // Store original controller
+  const originalRegister = plugin.controllers.auth.register;
+
+  // Override with custom implementation
   plugin.controllers.auth.register = async (ctx) => {
     const { email, username, password } = ctx.request.body;
 
