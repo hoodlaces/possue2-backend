@@ -168,8 +168,8 @@ module.exports = {
         return ctx.internalServerError('Registration failed: Could not send confirmation email');
       }
 
-      // Sanitize user data for response
-      const sanitizedUser = await strapi.plugin('users-permissions').service('user').sanitize(user, ctx);
+      // Sanitize user data for response (Strapi v5)
+      const sanitizedUser = await strapi.contentAPI.sanitize.output(user, strapi.getModel('plugin::users-permissions.user'), { auth: ctx.state.auth });
 
       strapi.log.info('=== CUSTOM REGISTRATION SUCCESS ===');
 
@@ -235,7 +235,7 @@ module.exports = {
           id: user.id,
         });
 
-        const sanitizedUser = await strapi.plugin('users-permissions').service('user').sanitize(user, ctx);
+        const sanitizedUser = await strapi.contentAPI.sanitize.output(user, strapi.getModel('plugin::users-permissions.user'), { auth: ctx.state.auth });
 
         strapi.log.info('Returning JWT for already confirmed user');
         return ctx.send({
@@ -264,8 +264,8 @@ module.exports = {
         id: confirmedUser.id,
       });
 
-      // Sanitize user data
-      const sanitizedUser = await strapi.plugin('users-permissions').service('user').sanitize(confirmedUser, ctx);
+      // Sanitize user data (Strapi v5)
+      const sanitizedUser = await strapi.contentAPI.sanitize.output(confirmedUser, strapi.getModel('plugin::users-permissions.user'), { auth: ctx.state.auth });
 
       // Prepare response
       const response = {
