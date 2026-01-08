@@ -305,11 +305,18 @@ module.exports = {
     // Load our custom controllers
     const customAuthControllers = require('./extensions/users-permissions/controllers/auth');
 
-    // Override the auth controllers
-    strapi.plugin('users-permissions').controller('auth').register = customAuthControllers.register;
-    strapi.plugin('users-permissions').controller('auth').emailConfirmation = customAuthControllers.emailConfirmation;
-    strapi.plugin('users-permissions').controller('auth').sendEmailConfirmation = customAuthControllers.sendEmailConfirmation;
+    // Get the actual controller object (Strapi v5 way)
+    const authController = strapi.plugin('users-permissions').controller('auth');
+
+    strapi.log.info('🔍 Auth controller object:', typeof authController);
+    strapi.log.info('🔍 Auth controller keys:', Object.keys(authController || {}));
+
+    // Override the auth controllers directly on the object
+    authController.register = customAuthControllers.register;
+    authController.emailConfirmation = customAuthControllers.emailConfirmation;
+    authController.sendEmailConfirmation = customAuthControllers.sendEmailConfirmation;
 
     strapi.log.info('✅ Users-permissions auth controllers overridden successfully');
+    strapi.log.info('🔍 Verify override - register:', typeof authController.register);
   },
 };
