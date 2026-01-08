@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const authRateLimit = require('../../middlewares/auth-rate-limit');
 
 module.exports = (plugin) => {
+  console.log('🔧 USERS-PERMISSIONS EXTENSION LOADING...');
+
   // Add rate limiting middleware to routes
   const originalRoutes = plugin.routes['content-api'].routes;
   
@@ -23,9 +25,11 @@ module.exports = (plugin) => {
   // Override registration and email confirmation methods
   
   // Custom registration with enhanced logging and token management
+  console.log('🔧 OVERRIDING plugin.controllers.auth.register');
   plugin.controllers.auth.register = async (ctx) => {
     const { email, username, password } = ctx.request.body;
 
+    console.log('🎯 CUSTOM REGISTRATION CONTROLLER CALLED');
     strapi.log.info('=== CUSTOM REGISTRATION START ===');
     strapi.log.info(`Email: ${email}, Username: ${username}`);
 
