@@ -298,34 +298,5 @@ module.exports = {
 
     // Set up permissions for bar-jurisdiction API
     await setupBarJurisdictionPermissions(strapi);
-
-    // CRITICAL: Override users-permissions controllers in bootstrap (after Strapi loads them)
-    strapi.log.info('🔧 Overriding users-permissions auth controllers in bootstrap...');
-
-    // Load our custom controllers
-    const customAuthControllers = require('./extensions/users-permissions/controllers/auth');
-
-    // Strapi v5: Access controllers through the plugin's internal structure
-    const usersPermissionsPlugin = strapi.plugin('users-permissions');
-
-    strapi.log.info('🔍 Plugin object:', typeof usersPermissionsPlugin);
-    strapi.log.info('🔍 Plugin keys:', Object.keys(usersPermissionsPlugin || {}).join(', '));
-
-    // Try different access patterns
-    if (usersPermissionsPlugin.controllers) {
-      strapi.log.info('🔍 Controllers exist, keys:', Object.keys(usersPermissionsPlugin.controllers).join(', '));
-      if (usersPermissionsPlugin.controllers.auth) {
-        strapi.log.info('🔍 Auth controller exists, keys:', Object.keys(usersPermissionsPlugin.controllers.auth).join(', '));
-
-        // Override methods
-        usersPermissionsPlugin.controllers.auth.register = customAuthControllers.register;
-        usersPermissionsPlugin.controllers.auth.emailConfirmation = customAuthControllers.emailConfirmation;
-        usersPermissionsPlugin.controllers.auth.sendEmailConfirmation = customAuthControllers.sendEmailConfirmation;
-
-        strapi.log.info('✅ Controllers overridden via plugin.controllers.auth');
-      }
-    }
-
-    strapi.log.info('✅ Bootstrap controller override complete');
   },
 };
