@@ -439,5 +439,150 @@ module.exports = {
 
       return ctx.internalServerError('Failed to resend confirmation email');
     }
+  },
+
+  // Custom forgot password handler
+  forgotPassword: async (ctx) => {
+    const { email } = ctx.request.body;
+
+    strapi.log.info('=== CUSTOM FORGOT PASSWORD START ===');
+    strapi.log.info(`Email: ${email ? email.substring(0, 3) + '***' : 'undefined'}`);
+
+    try {
+      // Validate email
+      if (!email) {
+        return ctx.badRequest('Please provide your email address');
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return ctx.badRequest('Please enter a valid email address');
+      }
+
+      // Find user
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { email: email.toLowerCase() }
+      });
+
+      if (!user) {
+        // Security: Don't reveal if email exists
+        return ctx.send({ ok: true });
+      }
+
+      // Generate reset token
+      const crypto = require('crypto');
+      const resetPasswordToken = crypto.randomBytes(32).toString('hex');
+
+      // Update user with reset token
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: user.id },
+        data: {
+          resetPasswordToken,
+        },
+      });
+
+      // Prepare reset URL with FRONTEND domain
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      const resetUrl = `${clientUrl}/reset-password?code=${resetPasswordToken}`;
+
+      strapi.log.info('🔍 PASSWORD RESET DEBUG:');
+      strapi.log.info(`   CLIENT_URL: ${clientUrl}`);
+      strapi.log.info(`   Reset URL: ${resetUrl}`);
+
+      // Send email
+      const fs = require('fs');
+      const path = require('path');
+
+      // Load reset password email template
+      const templatePath = path.join(strapi.dirs.app.src, 'extensions', 'users-permissions', 'email-templates', 'reset-password.html');
+
+      let emailTemplate;
+      if (fs.existsSync(templatePath)) {
+        emailTemplate = fs.readFileSync(templatePath, 'utf8');
+        emailTemplate = emailTemplate.replace(/<%= URL %>/g, resetUrl);
+        emailTemplate = emailTemplate.replace(/<%= USER %>/g, user.username || user.email);
+      } else {
+        // Fallback to simple template
+        emailTemplate = `
+          <h2>Reset Your Password</h2>
+          <p>Hi ${user.username || user.email},</p>
+          <p>You requested to reset your password. Click the link below to reset it:</p>
+          <p><a href="${resetUrl}">Reset Password</a></p>
+          <p>If you didn't request this, please ignore this email.</p>
+          <p>This link will expire in 24 hours.</p>
+        `;
+      }
+
+      await strapi.plugin('email').service('email').send({
+        to: user.email,
+        from: process.env.SENDGRID_FROM_EMAIL,
+        subject: 'Reset your password - Possue',
+        html: emailTemplate
+      });
+
+      strapi.log.info(`✅ Password reset email sent to ${email}`);
+
+      return ctx.send({ ok: true });
+
+    } catch (error) {
+      strapi.log.error('=== FORGOT PASSWORD ERROR ===');
+      strapi.log.error('Error:', error);
+      return ctx.badRequest('Failed to send reset password email');
+    }
+  },
+
+  // Custom reset password handler
+  resetPassword: async (ctx) => {
+    const { code, password, passwordConfirmation } = ctx.request.body;
+
+    strapi.log.info('=== CUSTOM RESET PASSWORD START ===');
+
+    try {
+      if (!code || !password || !passwordConfirmation) {
+        return ctx.badRequest('Code, password and password confirmation are required');
+      }
+
+      if (password !== passwordConfirmation) {
+        return ctx.badRequest('Passwords do not match');
+      }
+
+      // Find user by reset token
+      const user = await strapi.db.query('plugin::users-permissions.user').findOne({
+        where: { resetPasswordToken: code }
+      });
+
+      if (!user) {
+        return ctx.badRequest('Invalid or expired reset code');
+      }
+
+      // Update password and clear reset token
+      await strapi.db.query('plugin::users-permissions.user').update({
+        where: { id: user.id },
+        data: {
+          password,
+          resetPasswordToken: null,
+        },
+      });
+
+      strapi.log.info(`✅ Password reset successful for user ${user.email}`);
+
+      // Generate JWT for auto-login
+      const jwt = strapi.plugin('users-permissions').service('jwt').issue({
+        id: user.id,
+      });
+
+      const sanitizedUser = await strapi.contentAPI.sanitize.output(user, strapi.getModel('plugin::users-permissions.user'), { auth: ctx.state.auth });
+
+      return ctx.send({
+        jwt,
+        user: sanitizedUser,
+        message: 'Password reset successfully. You are now logged in.'
+      });
+
+    } catch (error) {
+      strapi.log.error('=== RESET PASSWORD ERROR ===');
+      strapi.log.error('Error:', error);
+      return ctx.badRequest('Failed to reset password');
+    }
   }
 };

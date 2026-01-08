@@ -40,6 +40,30 @@ module.exports = (plugin) => {
         return;
       });
     }
+
+    if (route.path === '/auth/forgot-password') {
+      console.log('🎯 Hijacking forgot password route with middleware');
+      route.config = route.config || {};
+      route.config.middlewares = route.config.middlewares || [];
+
+      route.config.middlewares.push(async (ctx) => {
+        console.log('🎯 MIDDLEWARE HIJACK: Running custom forgot password controller');
+        await customAuthController.forgotPassword(ctx);
+        return;
+      });
+    }
+
+    if (route.path === '/auth/reset-password') {
+      console.log('🎯 Hijacking reset password route with middleware');
+      route.config = route.config || {};
+      route.config.middlewares = route.config.middlewares || [];
+
+      route.config.middlewares.push(async (ctx) => {
+        console.log('🎯 MIDDLEWARE HIJACK: Running custom reset password controller');
+        await customAuthController.resetPassword(ctx);
+        return;
+      });
+    }
   });
 
   console.log('✅ Routes hijacked with middleware');
