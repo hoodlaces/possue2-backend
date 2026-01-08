@@ -4,49 +4,45 @@ const customAuthController = require('./controllers/auth');
 module.exports = (plugin) => {
   console.log('🔧 USERS-PERMISSIONS EXTENSION LOADING...');
 
-  // Add rate limiting middleware
+  // Modify routes to use our custom controller via middleware hijacking
   const routes = plugin.routes['content-api'].routes;
 
   routes.forEach(route => {
     if (route.path === '/auth/local/register') {
+      console.log('🎯 Hijacking registration route with middleware');
+
       route.config = route.config || {};
       route.config.middlewares = route.config.middlewares || [];
+
+      // Add rate limiting FIRST
       route.config.middlewares.push((ctx, next) => authRateLimit.registration()(ctx, next));
+
+      // Then add HIJACK middleware that runs our controller and prevents default
+      route.config.middlewares.push(async (ctx, next) => {
+        console.log('🎯 MIDDLEWARE HIJACK: Running custom registration controller');
+
+        // Run our custom controller
+        await customAuthController.register(ctx);
+
+        // Don't call next() - this prevents the default controller from running
+        // Our controller already sent the response via ctx.send()
+        return;
+      });
     }
 
     if (route.path === '/auth/email-confirmation') {
       route.config = route.config || {};
       route.config.middlewares = route.config.middlewares || [];
       route.config.middlewares.push((ctx, next) => authRateLimit.emailConfirmation()(ctx, next));
+
+      route.config.middlewares.push(async (ctx) => {
+        await customAuthController.emailConfirmation(ctx);
+        return;
+      });
     }
   });
 
-  // NUCLEAR OPTION: Use Object.defineProperty to intercept controller method calls
-  console.log('🔧 Using defineProperty to force controller override...');
-
-  Object.defineProperty(plugin.controllers.auth, 'register', {
-    value: customAuthController.register,
-    writable: true,
-    enumerable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(plugin.controllers.auth, 'emailConfirmation', {
-    value: customAuthController.emailConfirmation,
-    writable: true,
-    enumerable: true,
-    configurable: true
-  });
-
-  Object.defineProperty(plugin.controllers.auth, 'sendEmailConfirmation', {
-    value: customAuthController.sendEmailConfirmation,
-    writable: true,
-    enumerable: true,
-    configurable: true
-  });
-
-  console.log('✅ Controllers defined with defineProperty');
-  console.log('🔍 Verify: plugin.controllers.auth.register =', typeof plugin.controllers.auth.register);
+  console.log('✅ Routes hijacked with middleware');
 
   return plugin;
 };
