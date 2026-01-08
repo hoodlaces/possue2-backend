@@ -22,23 +22,10 @@ module.exports = (plugin) => {
     }
   });
 
-  // Override registration and email confirmation methods
-
-  // Debug: Check controller structure
-  console.log('🔍 plugin.controllers:', Object.keys(plugin.controllers || {}));
-  console.log('🔍 plugin.controllers.auth:', plugin.controllers.auth ? 'exists' : 'MISSING');
-  if (plugin.controllers.auth) {
-    console.log('🔍 auth methods:', Object.keys(plugin.controllers.auth));
-  }
-
-  // Custom registration with enhanced logging and token management
-  console.log('🔧 OVERRIDING plugin.controllers.auth.register');
-
-  // Store original controller
-  const originalRegister = plugin.controllers.auth.register;
-
-  // Override with custom implementation
-  plugin.controllers.auth.register = async (ctx) => {
+  // Define custom auth controller methods
+  const customAuthController = {
+    // Custom registration with enhanced logging and token management
+    register: async (ctx) => {
     const { email, username, password } = ctx.request.body;
 
     console.log('🎯 CUSTOM REGISTRATION CONTROLLER CALLED');
@@ -215,12 +202,12 @@ module.exports = (plugin) => {
     } catch (error) {
       strapi.log.error('=== REGISTRATION ERROR ===');
       strapi.log.error('Error:', error);
-      
+
       return ctx.internalServerError('Registration failed');
     }
-  };
+  },
 
-  plugin.controllers.auth.emailConfirmation = async (ctx) => {
+  emailConfirmation: async (ctx) => {
     const { confirmation: confirmationToken } = ctx.query;
 
     strapi.log.info('=== CUSTOM EMAIL CONFIRMATION START ===');
@@ -317,13 +304,13 @@ module.exports = (plugin) => {
     } catch (error) {
       strapi.log.error('=== EMAIL CONFIRMATION ERROR ===');
       strapi.log.error('Error:', error);
-      
+
       return ctx.badRequest('Email confirmation failed');
     }
-  };
+  },
 
   // Custom send email confirmation method
-  plugin.controllers.auth.sendEmailConfirmation = async (ctx) => {
+  sendEmailConfirmation: async (ctx) => {
     const { email } = ctx.request.body;
 
     strapi.log.info('=== CUSTOM SEND EMAIL CONFIRMATION START ===');
@@ -470,10 +457,19 @@ module.exports = (plugin) => {
     } catch (error) {
       strapi.log.error('=== SEND EMAIL CONFIRMATION ERROR ===');
       strapi.log.error('Error:', error);
-      
+
       return ctx.internalServerError('Failed to resend confirmation email');
     }
-  };
-  
-  return plugin;
+  }
+};
+
+// Merge custom auth controller with plugin auth controller (Strapi v5 way)
+console.log('🔧 Merging custom auth controller...');
+plugin.controllers.auth = {
+  ...plugin.controllers.auth,
+  ...customAuthController
+};
+console.log('✅ Custom auth controller methods:', Object.keys(plugin.controllers.auth));
+
+return plugin;
 };
