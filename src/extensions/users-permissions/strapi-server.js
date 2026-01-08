@@ -22,13 +22,15 @@ module.exports = (plugin) => {
     }
   });
 
-  // Strapi v5: Export controllers properly by merging with existing
-  console.log('🔧 Merging custom auth controllers...');
-  plugin.controllers.auth = {
-    ...plugin.controllers.auth,
-    ...customAuthController,
-  };
-  console.log('✅ Custom auth controller exported with methods:', Object.keys(customAuthController).join(', '));
+  // Strapi v5: Add methods to existing controller object (don't replace it!)
+  console.log('🔧 Adding custom auth controller methods...');
+
+  // Add each method individually to preserve the object reference
+  plugin.controllers.auth.register = customAuthController.register;
+  plugin.controllers.auth.emailConfirmation = customAuthController.emailConfirmation;
+  plugin.controllers.auth.sendEmailConfirmation = customAuthController.sendEmailConfirmation;
+
+  console.log('✅ Custom methods added to auth controller');
 
   return plugin;
 };
