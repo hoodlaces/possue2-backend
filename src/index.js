@@ -292,11 +292,24 @@ module.exports = {
   async bootstrap({ strapi }) {
     // Set up permissions for practice-session API
     await setupPracticeSessionPermissions(strapi);
-    
+
     // Set up permissions for user-rule API
     await setupUserRulePermissions(strapi);
-    
+
     // Set up permissions for bar-jurisdiction API
     await setupBarJurisdictionPermissions(strapi);
+
+    // CRITICAL: Override users-permissions controllers in bootstrap (after Strapi loads them)
+    strapi.log.info('🔧 Overriding users-permissions auth controllers in bootstrap...');
+
+    // Load our custom controllers
+    const customAuthControllers = require('./extensions/users-permissions/controllers/auth');
+
+    // Override the auth controllers
+    strapi.plugin('users-permissions').controller('auth').register = customAuthControllers.register;
+    strapi.plugin('users-permissions').controller('auth').emailConfirmation = customAuthControllers.emailConfirmation;
+    strapi.plugin('users-permissions').controller('auth').sendEmailConfirmation = customAuthControllers.sendEmailConfirmation;
+
+    strapi.log.info('✅ Users-permissions auth controllers overridden successfully');
   },
 };
