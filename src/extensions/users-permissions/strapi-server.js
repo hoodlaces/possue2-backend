@@ -463,13 +463,11 @@ module.exports = (plugin) => {
   }
 };
 
-// Merge custom auth controller with plugin auth controller (Strapi v5 way)
-console.log('🔧 Merging custom auth controller...');
-plugin.controllers.auth = {
-  ...plugin.controllers.auth,
-  ...customAuthController
-};
-console.log('✅ Custom auth controller methods:', Object.keys(plugin.controllers.auth));
+// Strapi v5: Add our custom methods to the existing auth controller object
+// Don't replace the object, just add properties to it
+console.log('🔧 Adding custom methods to auth controller...');
+Object.assign(plugin.controllers.auth, customAuthController);
+console.log('✅ Custom auth methods added:', Object.keys(customAuthController));
 
 return plugin;
 };
