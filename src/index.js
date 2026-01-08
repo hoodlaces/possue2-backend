@@ -305,18 +305,27 @@ module.exports = {
     // Load our custom controllers
     const customAuthControllers = require('./extensions/users-permissions/controllers/auth');
 
-    // Get the actual controller object (Strapi v5 way)
-    const authController = strapi.plugin('users-permissions').controller('auth');
+    // Strapi v5: Access controllers through the plugin's internal structure
+    const usersPermissionsPlugin = strapi.plugin('users-permissions');
 
-    strapi.log.info('🔍 Auth controller object:', typeof authController);
-    strapi.log.info('🔍 Auth controller keys:', Object.keys(authController || {}));
+    strapi.log.info('🔍 Plugin object:', typeof usersPermissionsPlugin);
+    strapi.log.info('🔍 Plugin keys:', Object.keys(usersPermissionsPlugin || {}).join(', '));
 
-    // Override the auth controllers directly on the object
-    authController.register = customAuthControllers.register;
-    authController.emailConfirmation = customAuthControllers.emailConfirmation;
-    authController.sendEmailConfirmation = customAuthControllers.sendEmailConfirmation;
+    // Try different access patterns
+    if (usersPermissionsPlugin.controllers) {
+      strapi.log.info('🔍 Controllers exist, keys:', Object.keys(usersPermissionsPlugin.controllers).join(', '));
+      if (usersPermissionsPlugin.controllers.auth) {
+        strapi.log.info('🔍 Auth controller exists, keys:', Object.keys(usersPermissionsPlugin.controllers.auth).join(', '));
 
-    strapi.log.info('✅ Users-permissions auth controllers overridden successfully');
-    strapi.log.info('🔍 Verify override - register:', typeof authController.register);
+        // Override methods
+        usersPermissionsPlugin.controllers.auth.register = customAuthControllers.register;
+        usersPermissionsPlugin.controllers.auth.emailConfirmation = customAuthControllers.emailConfirmation;
+        usersPermissionsPlugin.controllers.auth.sendEmailConfirmation = customAuthControllers.sendEmailConfirmation;
+
+        strapi.log.info('✅ Controllers overridden via plugin.controllers.auth');
+      }
+    }
+
+    strapi.log.info('✅ Bootstrap controller override complete');
   },
 };
