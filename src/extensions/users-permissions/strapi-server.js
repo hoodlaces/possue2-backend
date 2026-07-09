@@ -61,11 +61,16 @@ module.exports = (plugin) => {
       route.config.middlewares.push(async (ctx) => {
         console.log('🎯 MIDDLEWARE HIJACK: Running custom forgot password controller');
 
-        // Strapi's built-in plugin::users-permissions.rateLimit keys on
-        // ctx.request.body.email, but our controllers don't require that
-        // field name, so it never engages here - this is a working substitute.
+        // Keyed by the target email, not IP - Render's proxy chain doesn't
+        // expose a stable client IP (verified live), and this is also the
+        // more meaningful thing to limit (stops spamming one address).
         const allowed = await checkRateLimit(
-          authRateLimit.generic({ max: 5, windowMs: 15 * 60 * 1000, prefix: 'forgot-password' }),
+          authRateLimit.generic({
+            max: 5,
+            windowMs: 15 * 60 * 1000,
+            prefix: 'forgot-password',
+            getKey: (c) => (c.request.body?.email || '').toLowerCase(),
+          }),
           ctx
         );
         if (!allowed) return;
@@ -83,8 +88,15 @@ module.exports = (plugin) => {
       route.config.middlewares.push(async (ctx) => {
         console.log('🎯 MIDDLEWARE HIJACK: Running custom reset password controller');
 
+        // Keyed by the reset code itself (not IP, for the same reason as
+        // forgot-password above) - limits guesses against a specific token.
         const allowed = await checkRateLimit(
-          authRateLimit.generic({ max: 10, windowMs: 15 * 60 * 1000, prefix: 'reset-password' }),
+          authRateLimit.generic({
+            max: 10,
+            windowMs: 15 * 60 * 1000,
+            prefix: 'reset-password',
+            getKey: (c) => c.request.body?.code,
+          }),
           ctx
         );
         if (!allowed) return;
@@ -101,9 +113,15 @@ module.exports = (plugin) => {
 
       // This one IS the last (only) pushed function, so the plain
       // (ctx, next) => ... form works and calling next() correctly lets
-      // Strapi's default login controller run afterward.
+      // Strapi's default login controller run afterward. Keyed by the
+      // submitted identifier (email/username), not IP - see note above.
       route.config.middlewares.push((ctx, next) =>
-        authRateLimit.generic({ max: 10, windowMs: 15 * 60 * 1000, prefix: 'login' })(ctx, next)
+        authRateLimit.generic({
+          max: 10,
+          windowMs: 15 * 60 * 1000,
+          prefix: 'login',
+          getKey: (c) => (c.request.body?.identifier || '').toLowerCase(),
+        })(ctx, next)
       );
     }
   });
