@@ -68,8 +68,9 @@ module.exports = {
       };
 
       strapi.log.info('Creating user in database...');
+      const hashedUserData = await strapi.plugin('users-permissions').service('user').ensureHashedPasswords(userData);
       const user = await strapi.db.query('plugin::users-permissions.user').create({
-        data: userData
+        data: hashedUserData
       });
 
       strapi.log.info(`User created successfully with ID: ${user.id}`);
@@ -556,10 +557,11 @@ module.exports = {
       }
 
       // Update password and clear reset token
+      const hashedPassword = await strapi.plugin('users-permissions').service('user').ensureHashedPasswords({ password });
       await strapi.db.query('plugin::users-permissions.user').update({
         where: { id: user.id },
         data: {
-          password,
+          ...hashedPassword,
           resetPasswordToken: null,
         },
       });
