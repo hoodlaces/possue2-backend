@@ -144,42 +144,42 @@ module.exports = createCoreController('api::practice-session.practice-session', 
     });
   },
 
-  // Custom endpoint for leaderboard data
+  // Custom endpoint for leaderboard data (public, unauthenticated - must never expose PII)
   async leaderboard(ctx) {
     const { limit = 10, minWordCount = 500 } = ctx.query;
-    
+    const safeLimit = Math.min(parseInt(limit, 10) || 10, 100);
+
     try {
       // Use raw SQL query for better performance
       const knex = strapi.db.connection;
-      
+
       const leaderboardData = await knex.raw(`
-        SELECT 
+        SELECT
           u.id as user_id,
           u.username,
-          u.email,
           COUNT(ps.id) as session_count,
           COALESCE(SUM(ps.word_count), 0) as total_words,
           COALESCE(SUM(ps.time_spent), 0) as total_time,
           MAX(ps.completed_at) as last_session
         FROM up_users u
-        LEFT JOIN practice_sessions ps ON u.id = ps.user_id 
+        LEFT JOIN practice_sessions ps ON u.id = ps.user_id
           AND ps.word_count >= ?
           AND ps.published_at IS NOT NULL
         WHERE u.blocked = false
-        GROUP BY u.id, u.username, u.email
+        GROUP BY u.id, u.username
         HAVING COUNT(ps.id) > 0
         ORDER BY session_count DESC, total_words DESC
         LIMIT ?
-      `, [minWordCount, limit]);
-      
+      `, [minWordCount, safeLimit]);
+
       return ctx.send({
         leaderboard: leaderboardData.rows,
         criteria: {
           minWordCount,
-          limit
+          limit: safeLimit
         }
       });
-      
+
     } catch (error) {
       strapi.log.error('Leaderboard query error:', error);
       return ctx.internalServerError('Failed to fetch leaderboard data');
