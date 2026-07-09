@@ -13,7 +13,7 @@ module.exports = {
       path: '/debug/verification/status/:email',
       handler: 'debug.verificationStatus',
       config: {
-        policies: [],
+        policies: ['global::is-admin'],
         middlewares: [(ctx, next) => authRateLimit.generic({ max: 20, prefix: 'debug' })(ctx, next)],
       },
     },
@@ -22,7 +22,7 @@ module.exports = {
       path: '/debug/verification/stats',
       handler: 'debug.verificationStats',
       config: {
-        policies: [],
+        policies: ['global::is-admin'],
         middlewares: [(ctx, next) => authRateLimit.generic({ max: 10, prefix: 'stats' })(ctx, next)],
       },
     },
@@ -31,7 +31,7 @@ module.exports = {
       path: '/debug/verification/resend',
       handler: 'debug.resendVerification',
       config: {
-        policies: [],
+        policies: ['global::is-admin'],
         middlewares: [(ctx, next) => authRateLimit.resendEmail()(ctx, next)],
       },
     },
@@ -40,7 +40,7 @@ module.exports = {
       path: '/debug/verification/cleanup',
       handler: 'debug.cleanupExpiredTokens',
       config: {
-        policies: [],
+        policies: ['global::is-admin'],
         middlewares: [(ctx, next) => authRateLimit.generic({ max: 5, prefix: 'cleanup' })(ctx, next)],
       },
     },
