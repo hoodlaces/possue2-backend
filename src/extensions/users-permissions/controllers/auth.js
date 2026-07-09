@@ -88,7 +88,7 @@ module.exports = {
       strapi.log.info(`   isDevelopment: ${isDevelopment}`);
       strapi.log.info(`   SENDGRID_API_KEY: ${process.env.SENDGRID_API_KEY ? 'SET (length: ' + process.env.SENDGRID_API_KEY.length + ')' : 'NOT SET'}`);
       strapi.log.info(`   SENDGRID_FROM_EMAIL: ${process.env.SENDGRID_FROM_EMAIL || 'undefined'}`);
-      strapi.log.info(`   confirmationUrl: ${confirmationUrl}`);
+      strapi.log.info(`   confirmationToken (expires in ${expiryHours}h): ${confirmationToken.substring(0, 10)}...`);
 
       if (isDevelopment) {
         strapi.log.warn('🔧 DEVELOPMENT MODE: Email verification bypass enabled');
@@ -137,7 +137,7 @@ module.exports = {
         strapi.log.info(`   To: ${email}`);
         strapi.log.info(`   From: ${process.env.SENDGRID_FROM_EMAIL}`);
         strapi.log.info(`   Subject: Please confirm your email address - Possue`);
-        strapi.log.info(`   Confirmation URL: ${confirmationUrl}`);
+        strapi.log.info(`   Confirmation token: ${confirmationToken.substring(0, 10)}...`);
 
         await strapi.plugin('email').service('email').send({
           to: email,
@@ -357,7 +357,7 @@ module.exports = {
       strapi.log.info(`   EMAIL_BYPASS_DEVELOPMENT: ${process.env.EMAIL_BYPASS_DEVELOPMENT || 'undefined'}`);
       strapi.log.info(`   CLIENT_URL: ${process.env.CLIENT_URL || 'undefined'}`);
       strapi.log.info(`   isDevelopment: ${isDevelopment}`);
-      strapi.log.info(`   confirmationUrl: ${confirmationUrl}`);
+      strapi.log.info(`   confirmationToken (expires in ${expiryHours}h): ${confirmationToken.substring(0, 10)}...`);
 
       if (isDevelopment) {
         strapi.log.warn('🔧 DEVELOPMENT MODE: Email verification bypass enabled for resend');
@@ -402,7 +402,7 @@ module.exports = {
         strapi.log.info(`   To: ${email}`);
         strapi.log.info(`   From: ${process.env.SENDGRID_FROM_EMAIL}`);
         strapi.log.info(`   Subject: Please confirm your email address - Possue`);
-        strapi.log.info(`   Confirmation URL: ${confirmationUrl}`);
+        strapi.log.info(`   Confirmation token: ${confirmationToken.substring(0, 10)}...`);
 
         await strapi.plugin('email').service('email').send({
           to: email,
@@ -473,12 +473,14 @@ module.exports = {
       // Generate reset token
       const crypto = require('crypto');
       const resetPasswordToken = crypto.randomBytes(32).toString('hex');
+      const resetPasswordExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
       // Update user with reset token
       await strapi.db.query('plugin::users-permissions.user').update({
         where: { id: user.id },
         data: {
           resetPasswordToken,
+          resetPasswordExpiry,
         },
       });
 
@@ -488,7 +490,7 @@ module.exports = {
 
       strapi.log.info('🔍 PASSWORD RESET DEBUG:');
       strapi.log.info(`   CLIENT_URL: ${clientUrl}`);
-      strapi.log.info(`   Reset URL: ${resetUrl}`);
+      strapi.log.info(`   Reset token (expires ${resetPasswordExpiry.toISOString()}): ${resetPasswordToken.substring(0, 10)}...`);
 
       // Send email
       const fs = require('fs');
@@ -556,6 +558,20 @@ module.exports = {
         return ctx.badRequest('Invalid or expired reset code');
       }
 
+      // Check token expiry
+      if (!user.resetPasswordExpiry || new Date() > new Date(user.resetPasswordExpiry)) {
+        // Clear expired/legacy token so it can't be reused
+        await strapi.db.query('plugin::users-permissions.user').update({
+          where: { id: user.id },
+          data: {
+            resetPasswordToken: null,
+            resetPasswordExpiry: null,
+          },
+        });
+
+        return ctx.badRequest('Reset code has expired. Please request a new password reset.');
+      }
+
       // Update password and clear reset token
       const hashedPassword = await strapi.plugin('users-permissions').service('user').ensureHashedPasswords({ password });
       await strapi.db.query('plugin::users-permissions.user').update({
@@ -563,6 +579,7 @@ module.exports = {
         data: {
           ...hashedPassword,
           resetPasswordToken: null,
+          resetPasswordExpiry: null,
         },
       });
 

@@ -42,6 +42,12 @@
       "private": true,
       "searchable": false
     },
+    "resetPasswordExpiry": {
+      "type": "datetime",
+      "configurable": false,
+      "private": true,
+      "searchable": false
+    },
     "confirmationToken": {
       "type": "string",
       "configurable": false,
