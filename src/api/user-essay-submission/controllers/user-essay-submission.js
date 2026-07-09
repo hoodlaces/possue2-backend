@@ -21,14 +21,30 @@ module.exports = createCoreController('api::user-essay-submission.user-essay-sub
       
       // Validate required fields
       const { title, exam_session } = ctx.request.body.data;
-      
+
       if (!title || !exam_session) {
         return ctx.badRequest('Missing required fields: title and exam_session');
       }
-      
+
+      // Whitelist client-settable fields explicitly - do NOT spread the raw
+      // request body, since this content type also has moderation/scoring
+      // fields (moderationNotes, reviewedBy, rejectionReason, originalScore,
+      // essay_scores, featuredSubmission, etc.) that must only ever be set
+      // by admin actions (approve/reject/updateStatus below), never by the
+      // submitter at creation time.
+      const {
+        content, submissionType, subject, submitterName, submitterEmail,
+        submitterYear, lawSchool, graduationYear, attachments, barExamDate,
+        isAnonymous, agreedToTerms, publishingConsent, first_name, last_name,
+        submission_notes, file,
+      } = ctx.request.body.data;
+
       // Prepare submission data (create as draft with pending status)
       const submissionData = {
-        ...ctx.request.body.data,
+        title, exam_session, content, submissionType, subject, submitterName,
+        submitterEmail, submitterYear, lawSchool, graduationYear, attachments,
+        barExamDate, isAnonymous, agreedToTerms, publishingConsent, first_name,
+        last_name, submission_notes, file,
         user: user.id,
         view_count: 0,
         status: 'pending', // Set explicit status
