@@ -46,6 +46,11 @@ module.exports = (plugin) => {
       route.config = route.config || {};
       route.config.middlewares = route.config.middlewares || [];
 
+      // Add rate limiting FIRST (Strapi's built-in plugin::users-permissions.rateLimit
+      // keys on ctx.request.body.email, but our controllers don't require that field
+      // name, so it never engages here - this is a working substitute)
+      route.config.middlewares.push((ctx, next) => authRateLimit.generic({ max: 5, windowMs: 15 * 60 * 1000, prefix: 'forgot-password' })(ctx, next));
+
       route.config.middlewares.push(async (ctx) => {
         console.log('🎯 MIDDLEWARE HIJACK: Running custom forgot password controller');
         await customAuthController.forgotPassword(ctx);
@@ -58,11 +63,26 @@ module.exports = (plugin) => {
       route.config = route.config || {};
       route.config.middlewares = route.config.middlewares || [];
 
+      route.config.middlewares.push((ctx, next) => authRateLimit.generic({ max: 10, windowMs: 15 * 60 * 1000, prefix: 'reset-password' })(ctx, next));
+
       route.config.middlewares.push(async (ctx) => {
         console.log('🎯 MIDDLEWARE HIJACK: Running custom reset password controller');
         await customAuthController.resetPassword(ctx);
         return;
       });
+    }
+
+    if (route.path === '/auth/local' && route.method === 'POST') {
+      console.log('🎯 Adding rate limiting to login route (no controller hijack)');
+      route.config = route.config || {};
+      route.config.middlewares = route.config.middlewares || [];
+
+      // Strapi's own default rate limiter is wired to this route but verified
+      // (live, production) to never actually trigger - it keys on
+      // ctx.request.body.email, while this app's login uses `identifier`.
+      // Add a working IP-based limiter alongside it; default login controller
+      // still runs after this via next().
+      route.config.middlewares.push((ctx, next) => authRateLimit.generic({ max: 10, windowMs: 15 * 60 * 1000, prefix: 'login' })(ctx, next));
     }
   });
 
