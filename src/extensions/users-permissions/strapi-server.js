@@ -1,6 +1,21 @@
 const authRateLimit = require('../../middlewares/auth-rate-limit');
 const customAuthController = require('./controllers/auth');
 
+// Runs a rate-limit middleware and reports whether it let the request through.
+// Needed because these routes only ever actually invoke the LAST function
+// pushed onto route.config.middlewares (verified live in production: a
+// separate rate-limit middleware pushed before the hijack function never
+// executes, while the hijack itself always does) - so the rate-limit check
+// has to run inline, inside the same final function, rather than as its own
+// earlier array entry.
+async function checkRateLimit(limiterMiddleware, ctx) {
+  let allowed = false;
+  await limiterMiddleware(ctx, async () => {
+    allowed = true;
+  });
+  return allowed;
+}
+
 module.exports = (plugin) => {
   console.log('🔧 USERS-PERMISSIONS EXTENSION LOADING...');
 
@@ -14,18 +29,13 @@ module.exports = (plugin) => {
       route.config = route.config || {};
       route.config.middlewares = route.config.middlewares || [];
 
-      // Add rate limiting FIRST
-      route.config.middlewares.push((ctx, next) => authRateLimit.registration()(ctx, next));
-
-      // Then add HIJACK middleware that runs our controller and prevents default
-      route.config.middlewares.push(async (ctx, next) => {
+      route.config.middlewares.push(async (ctx) => {
         console.log('🎯 MIDDLEWARE HIJACK: Running custom registration controller');
 
-        // Run our custom controller
-        await customAuthController.register(ctx);
+        const allowed = await checkRateLimit(authRateLimit.registration(), ctx);
+        if (!allowed) return;
 
-        // Don't call next() - this prevents the default controller from running
-        // Our controller already sent the response via ctx.send()
+        await customAuthController.register(ctx);
         return;
       });
     }
@@ -33,9 +43,11 @@ module.exports = (plugin) => {
     if (route.path === '/auth/email-confirmation') {
       route.config = route.config || {};
       route.config.middlewares = route.config.middlewares || [];
-      route.config.middlewares.push((ctx, next) => authRateLimit.emailConfirmation()(ctx, next));
 
       route.config.middlewares.push(async (ctx) => {
+        const allowed = await checkRateLimit(authRateLimit.emailConfirmation(), ctx);
+        if (!allowed) return;
+
         await customAuthController.emailConfirmation(ctx);
         return;
       });
@@ -46,13 +58,18 @@ module.exports = (plugin) => {
       route.config = route.config || {};
       route.config.middlewares = route.config.middlewares || [];
 
-      // Add rate limiting FIRST (Strapi's built-in plugin::users-permissions.rateLimit
-      // keys on ctx.request.body.email, but our controllers don't require that field
-      // name, so it never engages here - this is a working substitute)
-      route.config.middlewares.push((ctx, next) => authRateLimit.generic({ max: 5, windowMs: 15 * 60 * 1000, prefix: 'forgot-password' })(ctx, next));
-
       route.config.middlewares.push(async (ctx) => {
         console.log('🎯 MIDDLEWARE HIJACK: Running custom forgot password controller');
+
+        // Strapi's built-in plugin::users-permissions.rateLimit keys on
+        // ctx.request.body.email, but our controllers don't require that
+        // field name, so it never engages here - this is a working substitute.
+        const allowed = await checkRateLimit(
+          authRateLimit.generic({ max: 5, windowMs: 15 * 60 * 1000, prefix: 'forgot-password' }),
+          ctx
+        );
+        if (!allowed) return;
+
         await customAuthController.forgotPassword(ctx);
         return;
       });
@@ -63,10 +80,15 @@ module.exports = (plugin) => {
       route.config = route.config || {};
       route.config.middlewares = route.config.middlewares || [];
 
-      route.config.middlewares.push((ctx, next) => authRateLimit.generic({ max: 10, windowMs: 15 * 60 * 1000, prefix: 'reset-password' })(ctx, next));
-
       route.config.middlewares.push(async (ctx) => {
         console.log('🎯 MIDDLEWARE HIJACK: Running custom reset password controller');
+
+        const allowed = await checkRateLimit(
+          authRateLimit.generic({ max: 10, windowMs: 15 * 60 * 1000, prefix: 'reset-password' }),
+          ctx
+        );
+        if (!allowed) return;
+
         await customAuthController.resetPassword(ctx);
         return;
       });
@@ -77,12 +99,12 @@ module.exports = (plugin) => {
       route.config = route.config || {};
       route.config.middlewares = route.config.middlewares || [];
 
-      // Strapi's own default rate limiter is wired to this route but verified
-      // (live, production) to never actually trigger - it keys on
-      // ctx.request.body.email, while this app's login uses `identifier`.
-      // Add a working IP-based limiter alongside it; default login controller
-      // still runs after this via next().
-      route.config.middlewares.push((ctx, next) => authRateLimit.generic({ max: 10, windowMs: 15 * 60 * 1000, prefix: 'login' })(ctx, next));
+      // This one IS the last (only) pushed function, so the plain
+      // (ctx, next) => ... form works and calling next() correctly lets
+      // Strapi's default login controller run afterward.
+      route.config.middlewares.push((ctx, next) =>
+        authRateLimit.generic({ max: 10, windowMs: 15 * 60 * 1000, prefix: 'login' })(ctx, next)
+      );
     }
   });
 
