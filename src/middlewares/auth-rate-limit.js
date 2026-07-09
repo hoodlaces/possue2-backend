@@ -135,6 +135,8 @@ const authRateLimit = {
       record.count++;
       attempts.set(key, record);
 
+      strapi.log.info(`[DIAGNOSTIC] key=${key} count=${record.count}/${maxAttempts} ip=${ip}`);
+
       if (record.count > maxAttempts) {
         strapi.log.warn(`Rate limit exceeded for ${prefix} from IP: ${ip}`);
         return ctx.tooManyRequests('Rate limit exceeded. Please try again later.');
