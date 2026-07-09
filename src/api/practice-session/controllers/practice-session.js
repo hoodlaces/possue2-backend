@@ -148,34 +148,57 @@ module.exports = createCoreController('api::practice-session.practice-session', 
   async leaderboard(ctx) {
     const { limit = 10, minWordCount = 500 } = ctx.query;
     const safeLimit = Math.min(parseInt(limit, 10) || 10, 100);
+    const safeMinWordCount = parseInt(minWordCount, 10) || 500;
 
     try {
-      // Use raw SQL query for better performance
-      const knex = strapi.db.connection;
+      // Aggregate via Strapi's relation layer rather than raw SQL against
+      // assumed column names - the `user` relation is stored in a separate
+      // link table (practice_sessions_user_lnk), not a user_id column on
+      // practice_sessions, which is what made the previous raw SQL version
+      // of this query fail with "column ps.user_id does not exist" on
+      // every call.
+      const sessions = await strapi.entityService.findMany('api::practice-session.practice-session', {
+        filters: {
+          wordCount: { $gte: safeMinWordCount },
+        },
+        populate: ['user'],
+        publicationState: 'live',
+        fields: ['wordCount', 'timeSpent', 'completedAt'],
+        limit: 10000,
+      });
 
-      const leaderboardData = await knex.raw(`
-        SELECT
-          u.id as user_id,
-          u.username,
-          COUNT(ps.id) as session_count,
-          COALESCE(SUM(ps.word_count), 0) as total_words,
-          COALESCE(SUM(ps.time_spent), 0) as total_time,
-          MAX(ps.completed_at) as last_session
-        FROM up_users u
-        LEFT JOIN practice_sessions ps ON u.id = ps.user_id
-          AND ps.word_count >= ?
-          AND ps.published_at IS NOT NULL
-        WHERE u.blocked = false
-        GROUP BY u.id, u.username
-        HAVING COUNT(ps.id) > 0
-        ORDER BY session_count DESC, total_words DESC
-        LIMIT ?
-      `, [minWordCount, safeLimit]);
+      const byUser = new Map();
+      for (const session of sessions) {
+        const user = session.user;
+        if (!user || user.blocked) continue;
+
+        const entry = byUser.get(user.id) || {
+          user_id: user.id,
+          username: user.username,
+          session_count: 0,
+          total_words: 0,
+          total_time: 0,
+          last_session: null,
+        };
+
+        entry.session_count += 1;
+        entry.total_words += session.wordCount || 0;
+        entry.total_time += session.timeSpent || 0;
+        if (!entry.last_session || new Date(session.completedAt) > new Date(entry.last_session)) {
+          entry.last_session = session.completedAt;
+        }
+
+        byUser.set(user.id, entry);
+      }
+
+      const leaderboard = Array.from(byUser.values())
+        .sort((a, b) => b.session_count - a.session_count || b.total_words - a.total_words)
+        .slice(0, safeLimit);
 
       return ctx.send({
-        leaderboard: leaderboardData.rows,
+        leaderboard,
         criteria: {
-          minWordCount,
+          minWordCount: safeMinWordCount,
           limit: safeLimit
         }
       });
