@@ -100,7 +100,19 @@ const customRoutes = {
 };
 
 // Merge custom routes with default routes, but customize permissions
+//
+// `type: 'content-api'` is required here - Strapi's own createCoreRouter
+// factory (node_modules/@strapi/core/dist/factories.js) always includes
+// it, but this hand-built export previously omitted it. Without it,
+// named policy references (global::is-authenticated, global::is-admin)
+// on these routes failed to resolve at all - every request to a
+// policy-gated route here got Strapi's generic "PolicyError: Policy
+// Failed" regardless of whether the requester was authenticated or an
+// admin, rather than the policy's own specific rejection message. Routes
+// with policies: [] (create, findApproved) were unaffected since they
+// never needed to resolve a named policy in the first place.
 module.exports = {
+  type: 'content-api',
   routes: [
     ...customRoutes.routes,
     // Override default routes with custom permissions
