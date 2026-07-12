@@ -2,17 +2,20 @@
 
 /**
  * `is-admin` policy
+ *
+ * Same fix as is-authenticated.js: Strapi calls this function directly
+ * and requires it to return `true`/`undefined` to allow, not a
+ * returned (ctx, next) middleware - see that file for the full
+ * root-cause explanation.
  */
+const { ForbiddenError } = require('@strapi/utils').errors;
 
-module.exports = (policyContext, config, { strapi }) => {
-  return async (ctx, next) => {
-    const { user } = ctx.state;
-    
-    // Check if user exists and is an admin
-    if (user && (user.isAdmin || user.role?.type === 'admin')) {
-      return await next();
-    }
+module.exports = (context) => {
+  const { user } = context.state;
 
-    return ctx.forbidden('Admin access required');
-  };
+  if (user && (user.isAdmin || user.role?.type === 'admin')) {
+    return true;
+  }
+
+  throw new ForbiddenError('Admin access required');
 };
