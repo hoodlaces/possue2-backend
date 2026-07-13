@@ -79,8 +79,7 @@
     "isAdmin": {
       "type": "boolean",
       "default": false,
-      "configurable": false,
-      "private": true
+      "configurable": false
     },
     "role": {
       "type": "relation",
