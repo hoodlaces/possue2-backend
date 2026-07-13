@@ -76,6 +76,12 @@
       "default": false,
       "configurable": false
     },
+    "isAdmin": {
+      "type": "boolean",
+      "default": false,
+      "configurable": false,
+      "private": true
+    },
     "role": {
       "type": "relation",
       "relation": "manyToOne",
