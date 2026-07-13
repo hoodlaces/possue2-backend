@@ -17,5 +17,5 @@ module.exports = (context) => {
     return true;
   }
 
-  throw new ForbiddenError(`TESTMARKER-9f3a hasUser=${!!user} isAdmin=${user?.isAdmin} roleType=${user?.role?.type}`);
+  throw new ForbiddenError('Admin access required');
 };
