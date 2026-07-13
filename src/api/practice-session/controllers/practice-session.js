@@ -74,30 +74,31 @@ module.exports = createCoreController('api::practice-session.practice-session', 
   // Custom endpoint for syncing multiple sessions
   async syncSessions(ctx) {
     const user = ctx.state.user;
-    
+
     if (!user) {
       return ctx.unauthorized('Authentication required');
     }
 
     const { sessions } = ctx.request.body;
-    
+
     if (!Array.isArray(sessions)) {
       return ctx.badRequest('Sessions must be an array');
     }
 
-    const results = {
-      created: 0,
-      skipped: 0,
-      errors: []
-    };
+    // Per-session outcomes (status keyed to the caller's own sessionId) so
+    // the client can tell exactly which of its local sessions were
+    // persisted, rather than only getting aggregate counts.
+    const items = [];
+    let created = 0, skipped = 0, errorCount = 0;
 
     for (const sessionData of sessions) {
+      const { sessionId, essayTitle, wordCount, timeSpent, completedAt } = sessionData;
+
       try {
-        const { sessionId, essayTitle, wordCount, timeSpent, completedAt } = sessionData;
-        
         // Validate required fields
         if (!sessionId || !essayTitle || wordCount === undefined || timeSpent === undefined || !completedAt) {
-          results.errors.push(`Invalid session data: ${JSON.stringify(sessionData)}`);
+          items.push({ sessionId: sessionId || null, status: 'error', error: 'Missing required fields' });
+          errorCount++;
           continue;
         }
 
@@ -111,12 +112,13 @@ module.exports = createCoreController('api::practice-session.practice-session', 
         });
 
         if (existingSession.length > 0) {
-          results.skipped++;
+          items.push({ sessionId, status: 'exists', id: existingSession[0].id });
+          skipped++;
           continue;
         }
 
         // Create the session
-        await strapi.entityService.create('api::practice-session.practice-session', {
+        const entity = await strapi.entityService.create('api::practice-session.practice-session', {
           data: {
             sessionId,
             essayTitle,
@@ -129,26 +131,40 @@ module.exports = createCoreController('api::practice-session.practice-session', 
           }
         });
 
-        results.created++;
-        
+        items.push({ sessionId, status: 'created', id: entity.id });
+        created++;
+
       } catch (error) {
-        results.errors.push(`Error processing session ${sessionData.sessionId}: ${error.message}`);
+        items.push({ sessionId: sessionId || null, status: 'error', error: error.message });
+        errorCount++;
       }
     }
 
-    strapi.log.info(`Sync completed for user ${user.id}: ${results.created} created, ${results.skipped} skipped, ${results.errors.length} errors`);
-    
+    strapi.log.info(`Sync completed for user ${user.id}: ${created} created, ${skipped} skipped, ${errorCount} errors`);
+
     return ctx.send({
       message: 'Sync completed',
-      results
+      results: { created, skipped, errors: errorCount },
+      sessions: items
     });
   },
 
   // Custom endpoint for leaderboard data (public, unauthenticated - must never expose PII)
   async leaderboard(ctx) {
-    const { limit = 10, minWordCount = 500 } = ctx.query;
+    const { limit = 10, minWordCount = 300, period = 'all-time' } = ctx.query;
     const safeLimit = Math.min(parseInt(limit, 10) || 10, 100);
-    const safeMinWordCount = parseInt(minWordCount, 10) || 500;
+    const safeMinWordCount = parseInt(minWordCount, 10) || 300;
+
+    const filters = {
+      wordCount: { $gte: safeMinWordCount },
+    };
+
+    if (period === 'weekly') {
+      filters.completedAt = { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) };
+    } else if (period === 'monthly') {
+      const now = new Date();
+      filters.completedAt = { $gte: new Date(now.getFullYear(), now.getMonth(), 1) };
+    }
 
     try {
       // Aggregate via Strapi's relation layer rather than raw SQL against
@@ -158,9 +174,7 @@ module.exports = createCoreController('api::practice-session.practice-session', 
       // of this query fail with "column ps.user_id does not exist" on
       // every call.
       const sessions = await strapi.entityService.findMany('api::practice-session.practice-session', {
-        filters: {
-          wordCount: { $gte: safeMinWordCount },
-        },
+        filters,
         populate: ['user'],
         publicationState: 'live',
         fields: ['wordCount', 'timeSpent', 'completedAt'],
@@ -199,7 +213,8 @@ module.exports = createCoreController('api::practice-session.practice-session', 
         leaderboard,
         criteria: {
           minWordCount: safeMinWordCount,
-          limit: safeLimit
+          limit: safeLimit,
+          period
         }
       });
 
