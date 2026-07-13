@@ -7,6 +7,7 @@
 const authRateLimit = require('../../../middlewares/auth-rate-limit');
 
 module.exports = {
+  type: 'content-api',
   routes: [
     {
       method: 'GET',
