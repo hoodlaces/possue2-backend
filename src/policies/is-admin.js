@@ -13,11 +13,9 @@ const { ForbiddenError } = require('@strapi/utils').errors;
 module.exports = (context) => {
   const { user } = context.state;
 
-  strapi.log.info(`[DIAGNOSTIC] is-admin check: hasUser=${!!user} isAdmin=${user?.isAdmin} roleType=${user?.role?.type} keys=${user ? Object.keys(user).join(',') : 'n/a'}`);
-
   if (user && (user.isAdmin || user.role?.type === 'admin')) {
     return true;
   }
 
-  throw new ForbiddenError('Admin access required');
+  throw new ForbiddenError(`TESTMARKER-9f3a hasUser=${!!user} isAdmin=${user?.isAdmin} roleType=${user?.role?.type}`);
 };
